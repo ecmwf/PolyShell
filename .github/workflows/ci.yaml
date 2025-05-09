@@ -1,0 +1,78 @@
+name: ci
+
+on:
+  # Trigger the workflow on push to main or dev, except tag creation
+  push:
+    branches:
+      - 'main'
+      - 'dev'
+  # Trigger the workflow on pull request
+  pull_request: ~
+  # Trigger the workflow manually
+  workflow_dispatch: ~
+  # Trigger after public PR approved for CI
+  pull_request_target:
+    types: [labeled]
+  release:
+    types: [created]
+
+jobs:
+  qa:
+    name: qa
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.3"
+
+      - name: Install Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Check isort
+        run: uvx ruff check --select I .
+
+      - name: Check formatting
+        run: uvx ruff format --diff .
+
+      - name: Check linting
+        run: uvx ruff check .
+
+  test:
+    name: test
+    needs:
+      - qa
+    strategy:
+      fail-fast: false
+      matrix:
+        name:
+          - ubuntu-latest
+        include:
+          - name: ubuntu-latest
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.3"
+
+      - name: Install Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Run tests
+        run: uv run pytest tests
