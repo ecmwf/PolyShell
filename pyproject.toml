@@ -1,0 +1,24 @@
+[project]
+name = "polyshell"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Kenneth Martin", email = "k.martin24@imperial.ac.uk" },
+    { name = "Miriam North Ridao", email = "miriam.north-ridao15@imperial.ac.uk" },
+    { name = "Niall Oswald", email = "niall.oswald20@imperial.ac.uk" },
+    { name = "Jo Wayne Tan", email = "jo.tan17@imperial.ac.uk" },
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "numpy>=2.3.0",
+    "pytest>=8.4.1",
+    "shapely>=2.1.1",
+]
