@@ -1,3 +1,1 @@
-def reduce_polygon(polygon_points):
-    # TODO: implement reduction algorithm
-    return polygon_points
+from polyshell.reducer import reduce_polygon  # noqa: F401

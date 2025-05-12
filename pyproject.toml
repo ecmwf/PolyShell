@@ -10,7 +10,10 @@ authors = [
     { name = "Jo Wayne Tan", email = "jo.tan17@imperial.ac.uk" },
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "rtree>=1.4.0",
+    "scipy>=1.15.3",
+]
 
 [build-system]
 requires = ["hatchling"]
