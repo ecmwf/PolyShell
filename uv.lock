@@ -12,6 +12,15 @@ wheels = [
 ]
 
 [[package]]
+name = "indexed-priority-queue"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/27/2b9e6fe38550a020a190dfe911da8361f598aec3e48fada5d4cc16d5927c/indexed_priority_queue-0.1.1.tar.gz", hash = "sha256:02c1b1e29bec9561c156bd387b2afc99f031f393f1615d7e490ca5ea653867af", size = 11371, upload-time = "2023-06-13T20:02:20.858Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/70/af/89fe055b26037d5df4e3e243cea3b8f94c2df05a3f260c7ac2a8c82fc222/indexed_priority_queue-0.1.1-py3-none-any.whl", hash = "sha256:086e6e4eea8e3de0dbbffc0fbfe561460ec9a960b529f373cc014486f21f6f22", size = 4952, upload-time = "2023-06-13T20:02:19.267Z" },
+]
+
+[[package]]
 name = "iniconfig"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -81,6 +90,7 @@ name = "polyshell"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "indexed-priority-queue" },
     { name = "shapely" },
 ]
 
@@ -90,7 +100,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "shapely", specifier = ">=2.1.0" }]
+requires-dist = [
+    { name = "indexed-priority-queue", specifier = ">=0.1.1" },
+    { name = "shapely", specifier = ">=2.1.0" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8.3.5" }]
