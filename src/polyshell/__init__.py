@@ -56,7 +56,7 @@ def reduce_polygon(polygon_points: list, tol: float = 1e-2) -> np.ndarray:
 def get_areas(points: np.ndarray) -> np.ndarray:
     """Find the signed area of each triangle."""
     x, y, z = points[:-2], points[1:-1], points[2:]
-    return 0.5 * np.cross(y - x, z - y, axis=-1)
+    return 0.5 * cross2d(y - x, z - y)
 
 
 def find_next(arr: list, index: int) -> int:
@@ -68,4 +68,9 @@ def find_next(arr: list, index: int) -> int:
 
 
 def find_last(arr: list, index: int) -> int:
-    return -(find_next(arr[::-1], index=-(index + 1)) + 1)
+    return -(find_next(arr[::-1], -(index + 1)) + 1)
+
+
+def cross2d(x, y):
+    """Compute the two-dimensional cross product."""
+    return x[..., 0] * y[..., 1] - x[..., 1] * y[..., 0]
