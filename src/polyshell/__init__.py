@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.ma as ma
-from indexed_priority_queue import IndexedPriorityQueue
+
+from polyshell.heap import PriorityQueue
 
 
 def reduce_polygon(polygon_points: list, tol: float = 1e-2) -> np.ndarray:
@@ -12,17 +13,15 @@ def reduce_polygon(polygon_points: list, tol: float = 1e-2) -> np.ndarray:
     # Store areas using an indexed priority queue
     areas = np.array([-np.inf, *get_areas(polygon_points), -np.inf])
 
-    point_queue = IndexedPriorityQueue()
+    pq = PriorityQueue()
     for index, area in enumerate(areas):
-        if area < 0:
-            point_queue.push(index, np.inf)
-        else:
-            point_queue.push(index, area)
+        if area > 0:
+            pq.push(index, area)
 
     loss = 0.0
     while loss < tol:
         # Find minimum
-        index, area = point_queue.pop()
+        index, area = pq.pop()
         loss += area
 
         # Update mask
@@ -35,17 +34,21 @@ def reduce_polygon(polygon_points: list, tol: float = 1e-2) -> np.ndarray:
 
         if before != 0:
             two_before = find_last(mask, before)
-            new_area = get_areas(polygon_points[[two_before, before, after]])
-            new_area = np.inf if new_area < 0 else new_area
+            new_area = get_areas(polygon_points[[two_before, before, after]])[0]
 
-            point_queue.update(before, new_area)
+            if new_area > 0:
+                pq.push(before, new_area)
+            elif before in pq:
+                pq.remove(before)
 
         if after != len(polygon_points) - 1:
             two_after = find_next(mask, after)
-            new_area = get_areas(polygon_points[[before, after, two_after]])
-            new_area = np.inf if new_area < 0 else new_area
+            new_area = get_areas(polygon_points[[before, after, two_after]])[0]
 
-            point_queue.update(after, new_area)
+            if new_area > 0:
+                pq.push(after, new_area)
+            elif after in pq:
+                pq.remove(after)
 
     return polygon_points[~mask]
 
