@@ -24,14 +24,21 @@ def reduce_polygon(polygon_points: list, tol: float = 1e-2) -> np.ndarray:
         index, area = pq.pop()
         loss += area
 
-        # Update mask
-        polygon_points[index] = ma.masked
+        # Find adjacent points
         mask = polygon_points.mask[:, 0]
-
-        # Update areas
         before = find_last(mask, index)
         after = find_next(mask, index)
+        triangle = polygon_points[[before, index, after]]
 
+        # Verify no crossing occurs
+        if check_triangle(polygon_points, triangle):
+            continue
+
+        # Update mask
+        polygon_points[index] = np.ma.masked
+        loss += area
+
+        # Update areas
         if before != 0:
             two_before = find_last(mask, before)
             new_area = get_areas(polygon_points[[two_before, before, after]])[0]
@@ -74,3 +81,13 @@ def find_last(arr: list, index: int) -> int:
 def cross2d(x, y):
     """Compute the two-dimensional cross product."""
     return x[..., 0] * y[..., 1] - x[..., 1] * y[..., 0]
+
+
+def check_triangle(p: np.ma.MaskedArray, triangle: list) -> bool:
+    """Check if any points p lie within a triangle."""
+    a, b, c = triangle
+    x = cross2d(b - a, p - a).compressed()
+    y = cross2d(c - b, p - b).compressed()
+    z = cross2d(a - c, p - c).compressed()
+
+    return ((x > 0) & (y > 0) & (z > 0)).any() or ((x < 0) & (y < 0) & (z < 0)).any()
