@@ -17,7 +17,7 @@ class DynPointTree:
         self.points = points
         self.kd_tree = KDTree(points.data)
 
-    def query_rectangle(self, bbox: list[list[float], 2]) -> list[list[float]]:
+    def query_rectangle(self, bbox: np.ndarray) -> np.ndarray:
         """Locate all points which lie inside a bounding box."""
         # Query the KD-Tree with a ball which inscribes the bounding box
         center = np.mean(bbox, axis=0)
@@ -26,48 +26,52 @@ class DynPointTree:
         candidate_points = self.points[candidate_indices]
 
         # Filter candidates by the bounding box and mask
-        valid_points = [
-            point
-            for point in candidate_points
-            if not np.ma.is_masked(point) and self.is_point_in_bbox(point, bbox)
-        ]
+        valid_points = np.array(
+            [
+                point
+                for point in candidate_points
+                if not np.ma.is_masked(point) and self.is_point_in_bbox(point, bbox)
+            ]
+        )
 
         return valid_points
 
-    def check_rectange(self, bbox: list[list[float], 2]) -> bool:
+    def check_rectange(self, bbox: np.ndarray) -> bool:
         """Check if any points lie inside a bounding box."""
         return len(self.query_rectangle(bbox)) > 0
 
-    def query_triangle(self, triangle: list[list[float, 2], 3]) -> list[list[float, 2]]:
+    def query_triangle(self, triangle: np.ndarray) -> np.ndarray:
         """Locate all points which lie inside a triangle."""
         # Query points within the bounding box
         bbox = self.get_bbox(triangle)
         candidate_points = self.query_rectangle(bbox)
 
         # Iterate over candidate points
-        return [
-            point
-            for point in candidate_points
-            if self.is_point_in_triangle(point, triangle)
-        ]
+        return np.array(
+            [
+                point
+                for point in candidate_points
+                if self.is_point_in_triangle(point, triangle)
+            ]
+        )
 
-    def check_triangle(self, triangle: list[list[float, 2], 3]) -> bool:
+    def check_triangle(self, triangle: np.ndarray) -> bool:
         """Check if any points lie inside a triangle."""
         return len(self.query_triangle(triangle)) > 0
 
     @staticmethod
-    def get_bbox(points: list[list[float]]) -> list[list[float], 2]:
+    def get_bbox(points: np.ndarray) -> np.ndarray:
         """Get the bounding box of a point cloud."""
-        return [np.min(points, axis=0), np.max(points, axis=0)]
+        return np.array([np.min(points, axis=0), np.max(points, axis=0)])
 
     @staticmethod
-    def is_point_in_bbox(p: list[float], bbox: list[list[float], 2]) -> bool:
+    def is_point_in_bbox(p: np.ndarray, bbox: np.ndarray) -> bool:
         """Check if a point p is in the interior of a bounding box."""
         min, max = bbox
         return (min < p).all() and (p < max).all()
 
     @staticmethod
-    def is_point_in_triangle(p: list[float], triangle: list[list[float, 2], 3]) -> bool:
+    def is_point_in_triangle(p: np.ndarray, triangle: np.ndarray) -> bool:
         """Check if a point p is in the interior of the given triangle."""
         a, b, c = triangle
 

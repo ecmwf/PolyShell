@@ -24,7 +24,7 @@ class PriorityQueue:
     def pop(self) -> tuple[int, float]:
         """Pop an item from the queue with lowest priority."""
         while self.pq:
-            priority, count, index = heappop(self.pq)
+            priority, _, index = heappop(self.pq)
             if index is not self.REMOVED:
                 del self.entry_map[index]
                 return index, priority

@@ -5,7 +5,7 @@ from polyshell.kd_tree import DynPointTree
 from polyshell.utils import cross_2d
 
 
-def reduce_polygon(polygon_points: list, tol: float = 1e-2) -> np.ndarray:
+def reduce_polygon(polygon_points: np.ndarray, tol: float = 1e-2) -> np.ndarray:
     """Reduce a polygon while retaining coverage."""
     polygon_points = np.ma.masked_array(
         polygon_points, mask=np.zeros_like(polygon_points, dtype=bool)
@@ -69,7 +69,7 @@ def get_areas(points: np.ndarray) -> np.ndarray:
     return 0.5 * cross_2d(y - x, z - y)
 
 
-def find_next(arr: list, index: int) -> int:  # TODO: Replace with searchsorted
+def find_next(arr: np.ndarray, index: int) -> int:  # TODO: Replace with searchsorted
     for i, x in enumerate(arr[index + 1 :], start=1):
         if not x:
             return index + i
@@ -77,5 +77,5 @@ def find_next(arr: list, index: int) -> int:  # TODO: Replace with searchsorted
         raise ValueError("No value found.")
 
 
-def find_last(arr: list, index: int) -> int:
+def find_last(arr: np.ndarray, index: int) -> int:
     return -(find_next(arr[::-1], -(index + 1)) + 1)
