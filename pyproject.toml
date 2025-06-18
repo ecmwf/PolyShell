@@ -11,8 +11,8 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "rtree>=1.4.0",
     "scipy>=1.15.3",
-    "shapely>=2.1.0",
 ]
 
 [build-system]
@@ -22,6 +22,7 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "pytest>=8.3.5",
+    "shapely>=2.1.1",
 ]
 
 [tool.pytest.ini_options]
