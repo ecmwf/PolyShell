@@ -19,7 +19,6 @@ class VWScore:
     current: int
     left: int
     right: int
-    intersector: bool
 
     def __post_init__(self):
         self.sort_index = self.score
@@ -59,13 +58,13 @@ def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> Line
 
     pq = [
         VWScore(
-            score=triangle.unsigned_area(),
+            score=area,
             current=i + 1,
             left=i,
             right=i + 2,
-            intersector=False,
         )
         for i, triangle in enumerate(polygon_points.triangles())
+        if (area := triangle.signed_area()) >= 0
     ]
     heapq.heapify(pq)
 
@@ -81,7 +80,9 @@ def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> Line
             continue
 
         # Check for self-intersection
-        smallest.intersector = tree_intersect(tree, smallest, polygon_points)
+        if tree_intersect(tree, smallest, polygon_points):
+            # Skip this point
+            continue
 
         # Update adjacency list
         ll, _ = adjacent[left]
@@ -105,9 +106,7 @@ def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> Line
         tree.insert(ID, new_line.bbox(), new_line)
 
         # Update adjacent triangles
-        recompute_triangles(
-            smallest, polygon_points, pq, ll, left, right, rr, max_points, epsilon
-        )
+        recompute_triangles(polygon_points, pq, ll, left, right, rr, max_points)
 
     # Filter out any deleted points
     return LineString(
@@ -116,7 +115,6 @@ def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> Line
 
 
 def recompute_triangles(
-    smallest: VWScore,
     points: LineString,
     pq: list[VWScore],
     ll: int,
@@ -124,7 +122,6 @@ def recompute_triangles(
     right: int,
     rr: int,
     max: int,
-    epsilon: float,
 ) -> None:
     choices = [(ll, left, right), (left, right, rr)]
     for ai, current_point, bi in choices:
@@ -132,12 +129,12 @@ def recompute_triangles(
             # Out of bounds
             continue
 
-        area = Triangle((points[ai], points[current_point], points[bi])).unsigned_area()
+        area = Triangle((points[ai], points[current_point], points[bi])).signed_area()
+        if area < 0:
+            # Do not push negative areas
+            continue
 
-        if smallest.intersector and current_point < smallest.current:
-            area = -epsilon
-
-        v = VWScore(area, current_point, ai, bi, intersector=False)
+        v = VWScore(area, current_point, ai, bi)
         heapq.heappush(pq, v)
 
 
