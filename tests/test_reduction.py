@@ -12,7 +12,7 @@ EPS = 1e-6
 
 pytestmark = pytest.mark.parametrize(
     "polygon",
-    [lf("ionian_sea")],
+    [lf("ionian_sea"), lf("random_polygon")],
 )
 
 
