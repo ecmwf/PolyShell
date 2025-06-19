@@ -225,6 +225,18 @@ wheels = [
 ]
 
 [[package]]
+name = "optype"
+version = "0.10.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/11/11/5bc1ad8e4dd339783daec5299c9162eaa80ad072aaa1256561b336152981/optype-0.10.0.tar.gz", hash = "sha256:2b89a1b8b48f9d6dd8c4dd4f59e22557185c81823c6e2bfc43c4819776d5a7ca", size = 95630, upload-time = "2025-05-28T22:43:18.799Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/98/7f97864d5b6801bc63c24e72c45a58417c344c563ca58134a43249ce8afa/optype-0.10.0-py3-none-any.whl", hash = "sha256:7e9ccc329fb65c326c6bd62c30c2ba03b694c28c378a96c2bcdd18a084f2c96b", size = 83825, upload-time = "2025-05-28T22:43:16.772Z" },
+]
+
+[[package]]
 name = "packaging"
 version = "25.0"
 source = { registry = "https://pypi.org/simple" }
@@ -308,6 +320,7 @@ dev = [
     { name = "polygenerator" },
     { name = "pytest" },
     { name = "pytest-lazy-fixtures" },
+    { name = "scipy-stubs" },
     { name = "shapely" },
 ]
 
@@ -324,6 +337,7 @@ dev = [
     { name = "polygenerator", specifier = ">=0.2.0" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-lazy-fixtures", specifier = ">=1.1.4" },
+    { name = "scipy-stubs", specifier = ">=1.16.0.0" },
     { name = "shapely", specifier = ">=2.1.1" },
 ]
 
@@ -441,6 +455,18 @@ wheels = [
 ]
 
 [[package]]
+name = "scipy-stubs"
+version = "1.16.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "optype" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3e/bc/60132561ce0f8f2e27260c95cce291c0eea63878a47bba49603bfab9aca3/scipy_stubs-1.16.0.0.tar.gz", hash = "sha256:cef483854a08a4165b960c5b83e09c468eabb7cf89e564fdff3449b5d6938449", size = 298751, upload-time = "2025-06-18T03:49:34.474Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/27/ec/e9f2b2c2b115a5fd5425dea9d993b38bbfae6ace673d6f1b51d9e79a4779/scipy_stubs-1.16.0.0-py3-none-any.whl", hash = "sha256:c91410eef4476e4e39a5eaf635869b5421c52285ba2d15969dabe289a36788b3", size = 483577, upload-time = "2025-06-18T03:49:32.674Z" },
+]
+
+[[package]]
 name = "shapely"
 version = "2.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -482,4 +508,13 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
+]
+
+[[package]]
+name = "typing-extensions"
+version = "4.14.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d1/bc/51647cd02527e87d05cb083ccc402f93e441606ff1f01739a62c8ad09ba5/typing_extensions-4.14.0.tar.gz", hash = "sha256:8676b788e32f02ab42d9e7c61324048ae4c6d844a399eebace3d4979d75ceef4", size = 107423, upload-time = "2025-06-02T14:52:11.399Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/69/e0/552843e0d356fbb5256d21449fa957fa4eff3bbc135a74a691ee70c7c5da/typing_extensions-4.14.0-py3-none-any.whl", hash = "sha256:a1514509136dd0b477638fc68d6a91497af5076466ad0fa6c338e44e359944af", size = 43839, upload-time = "2025-06-02T14:52:10.026Z" },
 ]

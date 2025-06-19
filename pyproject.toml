@@ -26,5 +26,6 @@ dev = [
     "polygenerator>=0.2.0",
     "pytest>=8.4.1",
     "pytest-lazy-fixtures>=1.1.4",
+    "scipy-stubs>=1.16.0.0",
     "shapely>=2.1.1",
 ]
