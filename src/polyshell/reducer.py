@@ -1,5 +1,7 @@
 import heapq
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from threading import Lock
 from typing import Iterable
 
 from rtree.index import Rtree
@@ -29,25 +31,38 @@ def data_stream(geoms: Iterable[Geometry]):
         yield (ID, item.bbox(), item)
 
 
-def reduce_polygon(polygon_points: Polygon, epsilon: float) -> Polygon:
+def worker_wraps(epsilon: float, tree: Rtree, mutex: Lock):
+    def worker(ls: LineString) -> LineString:
+        return vw_preserve(ls, epsilon, tree, mutex)
+
+    return worker
+
+
+def reduce_polygon(
+    polygon_points: Polygon, epsilon: float, max_workers: int
+) -> Polygon:
     """Reduce a polygon while retaining coverage."""
     tree = Rtree(data_stream(polygon_points.lines()))
+    mutex = Lock()  # Rtree is not thread-safe, lock with a mutex
 
-    # Slice, dispatch, and reconstitute
+    # Slice into LineStrings
     vertices = ConvexHull(polygon_points.to_array()).vertices[::-1]
     vertices = list([*vertices, vertices[0]])
+    segments = [
+        polygon_points[start : end + 1]
+        for start, end in zip(vertices[:-1], vertices[1:])
+    ]
 
-    reduced_poly = Polygon.merge(
-        [
-            vw_preserve(polygon_points[start : end + 1], epsilon, tree)
-            for start, end in zip(vertices[:-1], vertices[1:])
-        ]
-    )
+    # Dispatch and reconstitute
+    with ThreadPoolExecutor(max_workers) as tpe:
+        reduced_segments = tpe.map(worker_wraps(epsilon, tree, mutex), segments)
 
-    return reduced_poly
+    return Polygon.merge(reduced_segments)
 
 
-def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> LineString:
+def vw_preserve(
+    polygon_points: LineString, epsilon: float, tree: Rtree, mutex: Lock
+) -> LineString:
     """Visvalingam-Whyatt line reduction algorithm adapted to prevent crossings."""
     if len(polygon_points) < 3 or epsilon <= 0:
         return polygon_points
@@ -68,6 +83,7 @@ def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> Line
     ]
     heapq.heapify(pq)
 
+    loss = 0
     while len(pq):
         smallest = heapq.heappop(pq)
 
@@ -80,7 +96,7 @@ def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> Line
             continue
 
         # Check for self-intersection
-        if tree_intersect(tree, smallest, polygon_points):
+        if tree_intersect(tree, smallest, polygon_points, mutex):
             # Skip this point
             continue
 
@@ -98,15 +114,20 @@ def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> Line
 
         line_1 = Line((left_point, middle_point))
         line_2 = Line((middle_point, right_point))
-        tree.delete(ID, line_1.bbox())
-        tree.delete(ID, line_2.bbox())
+        with mutex:
+            tree.delete(ID, line_1.bbox())
+            tree.delete(ID, line_2.bbox())
 
         # Reconnect vertices
         new_line = Line((left_point, right_point))
-        tree.insert(ID, new_line.bbox(), new_line)
+        with mutex:
+            tree.insert(ID, new_line.bbox(), new_line)
 
         # Update adjacent triangles
         recompute_triangles(polygon_points, pq, ll, left, right, rr, max_points)
+
+        # Update loss
+        loss += smallest.score
 
     # Filter out any deleted points
     return LineString(
@@ -138,7 +159,9 @@ def recompute_triangles(
         heapq.heappush(pq, v)
 
 
-def tree_intersect(tree: Rtree, triangle: VWScore, points: LineString) -> bool:
+def tree_intersect(
+    tree: Rtree, triangle: VWScore, points: LineString, mutex: Lock
+) -> bool:
     """Check if removal of a triangle causes a self-intersection."""
     new_segment_start = points[triangle.left]
     new_segment_end = points[triangle.right]
@@ -149,7 +172,10 @@ def tree_intersect(tree: Rtree, triangle: VWScore, points: LineString) -> bool:
         (points[triangle.left], points[triangle.current], points[triangle.right])
     ).bbox()
 
-    for candidate_item in tree.intersection(bounding_rect, objects=True):
+    with mutex:
+        candidates = tree.intersection(bounding_rect, objects=True)
+
+    for candidate_item in candidates:
         candidate: Line = candidate_item.object  # type: ignore
         candidate_start, candidate_end = candidate
         if (

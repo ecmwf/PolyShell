@@ -11,7 +11,7 @@ if __name__ == "__main__":
         original_polygon = np.array(pickle.load(f))
 
     original_polygon = Polygon([Coord(tuple(point)) for point in original_polygon])
-    reduced_polygon = reduce_polygon(original_polygon, epsilon=1e-6)
+    reduced_polygon = reduce_polygon(original_polygon, epsilon=1e-6, max_workers=4)
 
     # Extract data
     x_orig, y_orig = zip(*original_polygon)
