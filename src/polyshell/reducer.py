@@ -38,7 +38,7 @@ def worker_wraps(epsilon: float):
 
 
 def reduce_polygon(
-    polygon_points: Polygon, epsilon: float, max_workers: int
+    polygon_points: Polygon, epsilon: float, max_workers: int | None = None
 ) -> Polygon:
     """Reduce a polygon while retaining coverage."""
     # Slice into LineStrings
