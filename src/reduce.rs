@@ -7,6 +7,8 @@ use std::collections::BinaryHeap;
 use rstar::primitives::CachedEnvelope;
 use rstar::{RTree, RTreeNum};
 
+use rayon::prelude::*;
+
 use qhull::Qh;
 
 #[derive(Debug)]
@@ -270,8 +272,9 @@ impl SimplifyVwPreserve<f64> for Polygon<f64> {
 
         // Reduce line segments and merge
         let reduced_segments = segments
-            .into_iter()
-            .map(|ls| ls.simplify_vw_preserve(epsilon));
+            .par_iter()  // parallelize with rayon
+            .map(|ls| ls.simplify_vw_preserve(epsilon))
+            .collect::<Vec<LineString<f64>>>();
 
         let mut exterior: Vec<Coord<f64>> = vec![];
         for (i, ls) in reduced_segments.into_iter().enumerate() {

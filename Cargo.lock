@@ -421,6 +421,7 @@ dependencies = [
  "geo",
  "pyo3",
  "qhull",
+ "rayon",
  "rstar",
 ]
 
