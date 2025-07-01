@@ -39,10 +39,17 @@ def reduce_polygon(polygon_points: Polygon, epsilon: float) -> Polygon:
 
     reduced_poly = Polygon.merge(
         [
-            vw_preserve(polygon_points[start : end + 1], epsilon, tree)
+            douglas_peucker(polygon_points[start : end + 1], epsilon)
             for start, end in zip(vertices[:-1], vertices[1:])
         ]
     )
+
+    # reduced_poly = Polygon.merge(
+    #     [
+    #         vw_preserve(polygon_points[start : end + 1], epsilon, tree)
+    #         for start, end in zip(vertices[:-1], vertices[1:])
+    #     ]
+    # )
 
     return reduced_poly
 
@@ -163,3 +170,40 @@ def tree_intersect(tree: Rtree, triangle: VWScore, points: LineString) -> bool:
 
     else:
         return False
+
+
+"""Functions for the Ramer–Douglas–Peucker algorithm."""
+
+
+def douglas_peucker(polygon_points: LineString, epsilon: float) -> LineString:
+    """
+    Recursively apply Douglas–Peucker: keep endpoints, find point with max
+    area with baseline; if area > epsilon, split and recurse, else drop intermediates.
+    """
+    if len(polygon_points) < 3 or epsilon <= 0:
+        return polygon_points
+
+    start, end = polygon_points[0], polygon_points[-1]
+    intermediate = []
+    # Find the point farthest from the [start, end] line
+    max_area = 0.0
+    index = 0
+    for i in range(1, len(polygon_points) - 1):
+        # Compute area formed by intermediate points with the end points line segment
+        a = Triangle((start, end, polygon_points[i])).signed_area()
+        if a > 0:
+            intermediate.append(polygon_points[i])
+        if abs(a) > max_area:
+            index, max_area = i, abs(a)
+
+    if max_area <= epsilon:
+        # All intermediate points are within epsilon: collapse to just [start, end]
+        # return LineString([start, end])
+        # Collapse to just [start, inter, end] where inter are points with +ve areas to ensure coverage
+        return LineString([start] + intermediate + [end])
+    else:
+        # Keep that farthest point, recurse on both segments
+        left = douglas_peucker(polygon_points[: index + 1], epsilon)
+        right = douglas_peucker(polygon_points[index:], epsilon)
+
+        return LineString.merge([left, right])

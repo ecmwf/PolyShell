@@ -66,7 +66,7 @@ class Line(Geometry):
 
 @dataclass(frozen=True)
 class Triangle(Geometry):
-    """A data stucture for triangles."""
+    """A data structure for triangles."""
 
     points: tuple[Coord, Coord, Coord]
 
@@ -76,7 +76,7 @@ class Triangle(Geometry):
         return 0.5 * cross_2d(y - x, z - y)
 
     def unsigned_area(self) -> float:
-        """Return the unsigned are of the triangle."""
+        """Return the unsigned area of the triangle."""
         return abs(self.signed_area())
 
 
