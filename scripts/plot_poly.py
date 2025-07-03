@@ -1,3 +1,5 @@
+"""Plot a polygon and its reduction."""
+
 import pickle
 
 import matplotlib.pyplot as plt
@@ -10,7 +12,7 @@ if __name__ == "__main__":
     with open("./tests/data/ionian_polygon_points.pkl", "rb") as f:
         original_polygon = np.array(pickle.load(f))
 
-    original_polygon = Polygon([Coord(tuple(point)) for point in original_polygon])
+    original_polygon = Polygon([Coord(tuple(point)) for point in original_polygon])  # type: ignore
     reduced_polygon = reduce_polygon(original_polygon, epsilon=1e-6)
 
     # Extract data

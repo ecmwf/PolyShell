@@ -27,7 +27,7 @@ class VWScore:
 
 def data_stream(geoms: Iterable[Geometry]):
     for item in geoms:
-        yield (ID, item.bbox(), item)
+        yield ID, item.bbox(), item
 
 
 def worker_wraps(epsilon: float):
@@ -38,14 +38,14 @@ def worker_wraps(epsilon: float):
 
 
 def reduce_polygon(
-    polygon_points: Polygon, epsilon: float, max_workers: int | None = None
+    polygon: Polygon, epsilon: float, max_workers: int | None = None
 ) -> Polygon:
     """Reduce a polygon while retaining coverage."""
     # Slice into LineStrings
-    vertices = ConvexHull(polygon_points.to_array()).vertices[::-1]
+    vertices = ConvexHull(polygon.to_array()).vertices[::-1]
     vertices = list([*vertices, vertices[0]])
     segments = [
-        polygon_points[start : end + 1]
+        polygon[start: end + 1]
         for start, end in zip(vertices[:-1], vertices[1:])
     ]
 

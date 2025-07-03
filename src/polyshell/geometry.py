@@ -66,7 +66,7 @@ class Line(Geometry):
 
 @dataclass(frozen=True)
 class Triangle(Geometry):
-    """A data stucture for triangles."""
+    """A data structure for triangles."""
 
     points: tuple[Coord, Coord, Coord]
 
@@ -105,20 +105,20 @@ class LineString:
         return iter(self.points)
 
     def to_array(self) -> list[list[float]]:
-        return list(map(list, self.points))
+        return list(map(list.__call__, self.points))
 
     @classmethod
     def from_array(cls, array: Sequence[tuple[float, float]]) -> Self:
-        return cls(list(map(Coord, array)))
+        return cls(list(map(Coord.__call__, array)))
 
     def lines(self) -> Iterator[Line]:
         """Return an iterator of lines formed of adjacent points."""
-        return map(Line, zip(self.points[:-1], self.points[1:]))
+        return map(Line.__call__, zip(self.points[:-1], self.points[1:]))
 
     def triangles(self) -> Iterator[Triangle]:
         """Return an iterator of triangles formed of three neighbouring points."""
         return map(
-            Triangle,
+            Triangle.__call__,
             zip(*[self.points[i : i + len(self.points) - 2] for i in range(3)]),
         )
 
