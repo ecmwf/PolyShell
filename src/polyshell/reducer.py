@@ -109,17 +109,9 @@ def vw_preserve(polygon_points: LineString, epsilon: float) -> VWResult:
         adjacent[right] = (left, rr)
         adjacent[smallest.current] = (0, 0)
 
-        # Remove stale segments from R tree
-        left_point = polygon_points[left]
-        middle_point = polygon_points[smallest.current]
-        right_point = polygon_points[right]
-
-        line_1 = Line((left_point, middle_point))
-        line_2 = Line((middle_point, right_point))
-        tree.delete(ID, line_1.bbox())
-        tree.delete(ID, line_2.bbox())
-
         # Reconnect vertices
+        left_point = polygon_points[left]
+        right_point = polygon_points[right]
         new_line = Line((left_point, right_point))
         tree.insert(ID, new_line.bbox(), new_line)
 
