@@ -11,6 +11,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "pyinstrument>=5.0.3",
     "rtree>=1.4.0",
     "scipy>=1.15.3",
 ]
