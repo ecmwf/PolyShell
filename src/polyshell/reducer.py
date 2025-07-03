@@ -1,4 +1,5 @@
 import heapq
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Iterable
 
@@ -24,44 +25,53 @@ class VWScore:
         self.sort_index = self.score
 
 
+@dataclass
+class VWResult:
+    line_string: LineString
+    loss: float
+
+
 def data_stream(geoms: Iterable[Geometry]):
     for item in geoms:
-        yield (ID, item.bbox(), item)
+        yield ID, item.bbox(), item
 
 
-def reduce_polygon(polygon_points: Polygon, epsilon: float) -> Polygon:
+def worker_wraps(epsilon: float):
+    def worker(ls: LineString) -> VWResult:
+        return vw_preserve(ls, epsilon)
+
+    return worker
+
+
+def reduce_polygon(
+    polygon: Polygon, epsilon: float, max_workers: int | None = None
+) -> Polygon:
     """Reduce a polygon while retaining coverage."""
-    tree = Rtree(data_stream(polygon_points.lines()))
-
-    # Slice, dispatch, and reconstitute
-    vertices = ConvexHull(polygon_points.to_array()).vertices[::-1]
+    # Slice into LineStrings
+    vertices = ConvexHull(polygon.to_array()).vertices[::-1]
     vertices = list([*vertices, vertices[0]])
+    segments = [
+        polygon[start: end + 1]
+        for start, end in zip(vertices[:-1], vertices[1:])
+    ]
 
-    reduced_poly = Polygon.merge(
-        [
-            douglas_peucker(polygon_points[start : end + 1], epsilon, tree)
-            for start, end in zip(vertices[:-1], vertices[1:])
-        ]
-    )
+    # Dispatch and reconstitute
+    with ThreadPoolExecutor(max_workers) as tpe:
+        vw_results = tpe.map(worker_wraps(epsilon), segments)
 
-    # reduced_poly = Polygon.merge(
-    #     [
-    #         vw_preserve(polygon_points[start : end + 1], epsilon, tree)
-    #         for start, end in zip(vertices[:-1], vertices[1:])
-    #     ]
-    # )
-
-    return reduced_poly
+    return Polygon.merge(map(lambda x: x.line_string, vw_results))
 
 
-def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> LineString:
+def vw_preserve(polygon_points: LineString, epsilon: float) -> VWResult:
     """Visvalingam-Whyatt line reduction algorithm adapted to prevent crossings."""
     if len(polygon_points) < 3 or epsilon <= 0:
-        return polygon_points
+        return VWResult(polygon_points, 0.0)
 
     max_points = len(polygon_points)
 
-    adjacent = [(i - 1, i + 1) for i in range(len(polygon_points))]
+    tree = Rtree(data_stream(polygon_points.lines()))
+
+    adjacent = [(i - 1, i + 1) for i in range(max_points)]
 
     pq = [
         VWScore(
@@ -75,6 +85,7 @@ def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> Line
     ]
     heapq.heapify(pq)
 
+    loss = 0
     while len(pq):
         smallest = heapq.heappop(pq)
 
@@ -115,9 +126,15 @@ def vw_preserve(polygon_points: LineString, epsilon: float, tree: Rtree) -> Line
         # Update adjacent triangles
         recompute_triangles(polygon_points, pq, ll, left, right, rr, max_points)
 
+        # Update loss
+        loss += smallest.score
+
     # Filter out any deleted points
-    return LineString(
-        [point for point, adj in zip(polygon_points, adjacent) if adj != (0, 0)]
+    return VWResult(
+        LineString(
+            [point for point, adj in zip(polygon_points, adjacent) if adj != (0, 0)]
+        ),
+        loss,
     )
 
 
@@ -156,7 +173,9 @@ def tree_intersect(tree: Rtree, triangle: VWScore, points: LineString) -> bool:
         (points[triangle.left], points[triangle.current], points[triangle.right])
     ).bbox()
 
-    for candidate_item in tree.intersection(bounding_rect, objects=True):
+    candidates = tree.intersection(bounding_rect, objects=True)
+
+    for candidate_item in candidates:
         candidate: Line = candidate_item.object  # type: ignore
         candidate_start, candidate_end = candidate
         if (
