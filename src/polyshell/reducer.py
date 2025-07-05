@@ -25,19 +25,13 @@ class VWScore:
         self.sort_index = self.score
 
 
-@dataclass
-class VWResult:
-    line_string: LineString
-    loss: float
-
-
 def data_stream(geoms: Iterable[Geometry]):
     for item in geoms:
         yield ID, item.bbox(), item
 
 
 def worker_wraps(epsilon: float):
-    def worker(ls: LineString) -> VWResult:
+    def worker(ls: LineString) -> LineString:
         return vw_preserve(ls, epsilon)
 
     return worker
@@ -57,15 +51,31 @@ def reduce_polygon(
 
     # Dispatch and reconstitute
     with ThreadPoolExecutor(max_workers) as tpe:
-        vw_results = tpe.map(worker_wraps(epsilon), segments)
+        reduced_segments = tpe.map(worker_wraps(epsilon), segments)
 
-    return Polygon.merge(map(lambda x: x.line_string, vw_results))
+    return Polygon.merge(reduced_segments)
 
 
-def vw_preserve(polygon_points: LineString, epsilon: float) -> VWResult:
+def reduce_losses(polygon: Polygon, max_workers: int | None = None) -> list[list[float]]:
+    # Slice into LineStrings
+    vertices = ConvexHull(polygon.to_array()).vertices[::-1]
+    vertices = list([*vertices, vertices[0]])
+    segments = [
+        polygon[start: end + 1]
+        for start, end in zip(vertices[:-1], vertices[1:])
+    ]
+
+    # Dispatch and reconstitute
+    with ThreadPoolExecutor(max_workers) as tpe:
+        reduced_segments = tpe.map(vw_indices, segments)
+
+    return [[vw_score.score for vw_score in removal_order] for removal_order in reduced_segments]
+
+
+def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
     """Visvalingam-Whyatt line reduction algorithm adapted to prevent crossings."""
     if len(polygon_points) < 3 or epsilon <= 0:
-        return VWResult(polygon_points, 0.0)
+        return polygon_points
 
     max_points = len(polygon_points)
 
@@ -122,12 +132,64 @@ def vw_preserve(polygon_points: LineString, epsilon: float) -> VWResult:
         loss += smallest.score
 
     # Filter out any deleted points
-    return VWResult(
-        LineString(
-            [point for point, adj in zip(polygon_points, adjacent) if adj != (0, 0)]
-        ),
-        loss,
+    return LineString(
+        [point for point, adj in zip(polygon_points, adjacent) if adj != (0, 0)]
     )
+
+
+def vw_indices(polygon_points: LineString) -> list[VWScore]:
+    """Removal order from the Visvalingam-Whyatt line reduction algorithm."""
+    max_points = len(polygon_points)
+
+    tree = Rtree(data_stream(polygon_points.lines()))
+
+    adjacent = [(i - 1, i + 1) for i in range(max_points)]
+
+    pq = [
+        VWScore(
+            score=area,
+            current=i + 1,
+            left=i,
+            right=i + 2,
+        )
+        for i, triangle in enumerate(polygon_points.triangles())
+        if (area := triangle.signed_area()) >= 0
+    ]
+    heapq.heapify(pq)
+
+    removal_order = []
+    while len(pq):
+        smallest = heapq.heappop(pq)
+
+        # Check if the score is invalidated
+        left, right = adjacent[smallest.current]
+        if left != smallest.left or right != smallest.right:
+            continue
+
+        # Check for self-intersection
+        if tree_intersect(tree, smallest, polygon_points):
+            # Skip this point
+            continue
+
+        # Update adjacency list
+        ll, _ = adjacent[left]
+        _, rr = adjacent[right]
+        adjacent[left] = (ll, right)
+        adjacent[right] = (left, rr)
+
+        # Reconnect vertices
+        left_point = polygon_points[left]
+        right_point = polygon_points[right]
+        new_line = Line((left_point, right_point))
+        tree.insert(ID, new_line.bbox(), new_line)
+
+        # Update adjacent triangles
+        recompute_triangles(polygon_points, pq, ll, left, right, rr, max_points)
+
+        # Update ordering
+        removal_order.append(smallest)
+
+    return removal_order
 
 
 def recompute_triangles(
