@@ -4,9 +4,15 @@ from dataclasses import dataclass, field
 from typing import Iterable
 
 from rtree.index import Rtree
-from scipy.spatial import ConvexHull
 
-from polyshell.geometry import Geometry, Line, LineString, Polygon, Triangle
+from polyshell.geometry import (
+    Geometry,
+    Line,
+    LineString,
+    Polygon,
+    Triangle,
+    melkman_indices,
+)
 
 ID = 0
 
@@ -43,11 +49,9 @@ def reduce_polygon(
 ) -> Polygon:
     """Reduce a polygon while retaining coverage."""
     # Slice into LineStrings
-    vertices = ConvexHull(polygon.to_array()).vertices[::-1]
-    vertices = list([*vertices, vertices[0]])
+    vertices = melkman_indices(polygon)
     segments = [
-        polygon[start: end + 1]
-        for start, end in zip(vertices[:-1], vertices[1:])
+        polygon[start : end + 1] for start, end in zip(vertices[:-1], vertices[1:])
     ]
 
     # Dispatch and reconstitute
