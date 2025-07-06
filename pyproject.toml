@@ -12,7 +12,6 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "rtree>=1.4.0",
-    "scipy>=1.15.3",
 ]
 
 [build-system]
@@ -27,6 +26,5 @@ dev = [
     "pyinstrument>=5.0.3",
     "pytest>=8.4.1",
     "pytest-cases>=3.9.1",
-    "scipy-stubs>=1.16.0.0",
     "shapely>=2.1.1",
 ]
