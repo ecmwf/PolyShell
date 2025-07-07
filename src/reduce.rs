@@ -1,11 +1,11 @@
 use geo::{
-    Area, BoundingRect, Coord, CoordFloat, GeoFloat, Intersects, Line, LineString, Point, Polygon, Triangle,
+    Area, BoundingRect, Coord, CoordFloat, GeoFloat, Intersects, Line, LineString, Point, Polygon,
+    Triangle,
 };
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
-
 use rstar::primitives::CachedEnvelope;
 use rstar::{RTree, RTreeNum};
+use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 
 use rayon::prelude::*;
 
@@ -187,20 +187,20 @@ where
         orig[triangle.current],
         orig[triangle.right],
     )
-    .bounding_rect();
+        .bounding_rect();
 
     tree.locate_in_envelope_intersecting(&rstar::AABB::from_corners(
         bounding_rect.min().into(),
         bounding_rect.max().into(),
     ))
-    .any(|candidate| {
-        let (candidate_start, candidate_end) = candidate.points();
-        candidate_start.0 != new_segment_start
-            && candidate_start.0 != new_segment_end
-            && candidate_end.0 != new_segment_start
-            && candidate_end.0 != new_segment_end
-            && (*new_segment).intersects(&**candidate)
-    })
+        .any(|candidate| {
+            let (candidate_start, candidate_end) = candidate.points();
+            candidate_start.0 != new_segment_start
+                && candidate_start.0 != new_segment_end
+                && candidate_end.0 != new_segment_start
+                && candidate_end.0 != new_segment_end
+                && (*new_segment).intersects(&**candidate)
+        })
 }
 
 fn recompute_triangles<T>(
@@ -225,7 +225,7 @@ fn recompute_triangles<T>(
             orig.0[current_point as usize],
             orig.0[bi as usize],
         )
-        .signed_area();
+            .signed_area();
 
         if area < T::zero() {
             continue;
@@ -237,7 +237,7 @@ fn recompute_triangles<T>(
             left: ai as usize,
             right: bi as usize,
         };
-        pq.push(v)
+        pq.push(v);
     }
 }
 
