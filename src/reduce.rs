@@ -1,3 +1,4 @@
+use crate::convex_hull::melkman_indices;
 use geo::{
     Area, BoundingRect, Coord, CoordFloat, GeoFloat, Intersects, Line, LineString, Point, Polygon,
     Triangle,
@@ -8,8 +9,6 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
 use rayon::prelude::*;
-
-use qhull::Qh;
 
 #[derive(Debug)]
 struct VScore<T>
@@ -52,27 +51,6 @@ where
         T: CoordFloat,
     {
         self.score == other.score
-    }
-}
-
-trait ConvexHullIndices {
-    fn convex_hull_indices(&self) -> Vec<usize>;
-}
-
-// qhull works only for f64
-impl ConvexHullIndices for LineString<f64> {
-    fn convex_hull_indices(&self) -> Vec<usize> {
-        let qh = Qh::builder()
-            .compute(true)
-            .build_from_iter(linestring_to_points(self))
-            .unwrap();
-        
-        let mut hull_indices = qh.vertices()
-            .map(|v| v.index(&qh).unwrap())
-            .collect::<Vec<_>>();  // qhull returns vertices unsorted
-        hull_indices.sort();
-    
-        hull_indices
     }
 }
 
@@ -146,14 +124,7 @@ where
         adjacent[smallest.current] = (0, 0);
 
         let left_point = Coord::from(orig.0[left as usize]);
-        let middle_point = Coord::from(orig.0[smallest.current]);
         let right_point = Coord::from(orig.0[right as usize]);
-
-        let line_1 = CachedEnvelope::new(Line::new(left_point, middle_point));
-        let line_2 = CachedEnvelope::new(Line::new(middle_point, right_point));
-        assert!(tree.remove(&line_1).is_some());
-        assert!(tree.remove(&line_2).is_some());
-
         tree.insert(CachedEnvelope::new(Line::new(left_point, right_point)));
 
         recompute_triangles(orig, &mut pq, ll, left, right, rr, max);
@@ -256,33 +227,39 @@ where
     }
 }
 
-impl SimplifyVwPreserve<f64> for Polygon<f64> {
-    fn simplify_vw_preserve(&self, epsilon: f64) -> Self {
-        // Take &self and return a new Polygon
+impl<T> SimplifyVwPreserve<T> for Polygon<T>
+where
+    T: GeoFloat + RTreeNum + Send + Sync,
+{
+    fn simplify_vw_preserve(&self, epsilon: T) -> Self {
         // Divide into segments between convex hull vertices
-        let hull_indices = self.exterior().convex_hull_indices();
-        let coord_vec = self.exterior().clone().into_inner();
+        let hull_indices = melkman_indices(self);
+        let coord_vec = &self.exterior().0;
+
         let segments = hull_indices
             .windows(2)
-            .map(|window| match window {
-                &[start, end] => LineString::new(coord_vec[start..=end].to_vec()),
-                _ => unreachable!(),  // window is always &[usize, usize]
+            .map(|window| {
+                let &[start, end] = window else {
+                    unreachable!()
+                };
+                if start <= end {
+                    LineString::new(coord_vec[start..=end].to_vec())
+                } else {
+                    LineString::new([&coord_vec[start..], &coord_vec[1..=end]].concat())
+                }
             })
-            .collect::<Vec<LineString<f64>>>();
+            .collect::<Vec<LineString<T>>>();
 
         // Reduce line segments and merge
-        let reduced_segments = segments
-            .par_iter()  // parallelize with rayon
+        let mut reduced_segments = segments
+            .into_par_iter() // parallelize with rayon
             .map(|ls| ls.simplify_vw_preserve(epsilon))
-            .collect::<Vec<LineString<f64>>>();
+            .collect::<Vec<LineString<T>>>()
+            .into_iter();
 
-        let mut exterior: Vec<Coord<f64>> = vec![];
-        for (i, ls) in reduced_segments.into_iter().enumerate() {
-            if i == 0 {
-                exterior.extend(&ls.clone().into_inner());
-            } else {
-                exterior.extend(&ls.clone().into_inner()[1..]);
-            }
+        let mut exterior: Vec<Coord<T>> = reduced_segments.next().unwrap().into_inner();
+        for ls in reduced_segments {
+            exterior.extend(ls.coords().skip(1));
         }
 
         Polygon::new(LineString::new(exterior), vec![])

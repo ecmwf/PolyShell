@@ -2,6 +2,7 @@ use geo::{LineString, Polygon};
 use pyo3::prelude::*;
 use reduce::{polygon_to_points, SimplifyVwPreserve};
 
+mod convex_hull;
 mod reduce;
 
 /// Formats the sum of two numbers as string.
