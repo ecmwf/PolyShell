@@ -39,7 +39,7 @@ def reduce_polygon(polygon_points: Polygon, epsilon: float) -> Polygon:
 
     reduced_poly = Polygon.merge(
         [
-            douglas_peucker(polygon_points[start : end + 1], epsilon)
+            douglas_peucker(polygon_points[start : end + 1], epsilon, tree)
             for start, end in zip(vertices[:-1], vertices[1:])
         ]
     )
@@ -175,16 +175,46 @@ def tree_intersect(tree: Rtree, triangle: VWScore, points: LineString) -> bool:
 """Functions for the Ramer–Douglas–Peucker algorithm."""
 
 
-def douglas_peucker(polygon_points: LineString, epsilon: float) -> LineString:
+def tree_intersect_segment(tree: Rtree, points: LineString) -> bool:
+    """
+    Return True if any segment in the given LineString ``points``
+    intersects an existing segment in the R-tree ``tree``.
+    """
+    # Iterate over each consecutive pair in points
+    for i in range(len(points) - 1):
+        start, end = points[i], points[i + 1]
+        seg = Line((start, end))
+        bbox = seg.bbox()
+
+        # Query all indexed segments whose bbox overlaps this segment
+        for item in tree.intersection(bbox, objects=True):
+            other: Line = item.object  # type: ignore
+            o0, o1 = map(tuple, other)
+
+            # Skip if they share an endpoint
+            if {o0, o1} & {tuple(start), tuple(end)}:
+                continue
+
+            if seg.intersects(other):
+                return True
+
+    # No crossings found across all segments
+    return False
+
+
+def douglas_peucker(
+    polygon_points: LineString, epsilon: float, tree: Rtree
+) -> LineString:
     """
     Recursively apply Douglas–Peucker: keep endpoints, find point with max
-    area with baseline; if area > epsilon, split and recurse, else drop intermediates.
+    area to baseline; if area > epsilon, split and recurse, else drop intermediates.
     """
     if len(polygon_points) < 3 or epsilon <= 0:
         return polygon_points
 
     start, end = polygon_points[0], polygon_points[-1]
     intermediate = []
+
     # Find the point farthest from the [start, end] line
     max_area = 0.0
     index = 0
@@ -199,11 +229,21 @@ def douglas_peucker(polygon_points: LineString, epsilon: float) -> LineString:
     if max_area <= epsilon:
         # All intermediate points are within epsilon: collapse to just [start, end]
         # return LineString([start, end])
-        # Collapse to just [start, inter, end] where inter are points with +ve areas to ensure coverage
-        return LineString([start] + intermediate + [end])
+        if tree_intersect_segment(tree, LineString([start] + intermediate + [end])):
+            # Fall back to polygon_points to ensure no self-intersections
+            # return polygon_points
+
+            # Keep the current point even though < epsilon, recurse on both segments
+            left = douglas_peucker(polygon_points[: index + 1], epsilon, tree)
+            right = douglas_peucker(polygon_points[index:], epsilon, tree)
+            return LineString.merge([left, right])
+        else:
+            # Collapse to [start, inter, end] only if no line segment crossings,
+            # where inter are points with +ve areas to ensure coverage
+            return LineString([start] + intermediate + [end])
     else:
-        # Keep that farthest point, recurse on both segments
-        left = douglas_peucker(polygon_points[: index + 1], epsilon)
-        right = douglas_peucker(polygon_points[index:], epsilon)
+        # Keep the farthest point, recurse on both segments
+        left = douglas_peucker(polygon_points[: index + 1], epsilon, tree)
+        right = douglas_peucker(polygon_points[index:], epsilon, tree)
 
         return LineString.merge([left, right])
