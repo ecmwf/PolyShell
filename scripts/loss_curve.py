@@ -6,7 +6,7 @@ import pickle
 import matplotlib.pyplot as plt
 from matplotlib.colors import TABLEAU_COLORS
 
-from polyshell.reducer import reduce_losses
+from polyshell.reducer import reduce_losses_dp
 from polyshell.geometry import Polygon, Coord
 
 
@@ -15,7 +15,7 @@ if __name__ == "__main__":
         original_polygon = np.array(pickle.load(f))
 
     polygon = Polygon([Coord(tuple(point)) for point in original_polygon])  # type: ignore
-    reduced_segments = reduce_losses(polygon)
+    reduced_segments = reduce_losses_dp(polygon)
 
     color_list = list(TABLEAU_COLORS.values())
 

@@ -32,7 +32,8 @@ def data_stream(geoms: Iterable[Geometry]):
 
 def worker_wraps(epsilon: float):
     def worker(ls: LineString) -> LineString:
-        return vw_preserve(ls, epsilon)
+        tree = Rtree(data_stream(ls.lines()))
+        return dp_preserve(ls, epsilon, tree)
 
     return worker
 
@@ -70,6 +71,27 @@ def reduce_losses(polygon: Polygon, max_workers: int | None = None) -> list[list
         reduced_segments = tpe.map(vw_indices, segments)
 
     return [[vw_score.score for vw_score in removal_order] for removal_order in reduced_segments]
+
+
+def reduce_losses_dp(polygon: Polygon, max_workers: int | None = None) -> list[list[float]]:
+    # Slice into LineStrings
+    vertices = ConvexHull(polygon.to_array()).vertices[::-1]
+    vertices = list([*vertices, vertices[0]])
+    segments = [
+        polygon[start: end + 1]
+        for start, end in zip(vertices[:-1], vertices[1:])
+    ]
+
+    trees = [
+        Rtree(data_stream(segment.lines()))
+        for segment in segments
+    ]
+
+    # Dispatch and reconstitute
+    with ThreadPoolExecutor(max_workers) as tpe:
+        reduced_segments = tpe.map(dp_indices, segments, trees)
+
+    return [scores for _, scores in reduced_segments]
 
 
 def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
@@ -275,7 +297,7 @@ def tree_intersect_segment(tree: Rtree, points: LineString) -> bool:
     return False
 
 
-def douglas_peucker(
+def dp_preserve(
     polygon_points: LineString, epsilon: float, tree: Rtree
 ) -> LineString:
     """
@@ -299,24 +321,78 @@ def douglas_peucker(
         if abs(a) > max_area:
             index, max_area = i, abs(a)
 
-    if max_area <= epsilon:
-        # All intermediate points are within epsilon: collapse to just [start, end]
-        # return LineString([start, end])
-        if tree_intersect_segment(tree, LineString([start] + intermediate + [end])):
+    candidates = [start] + intermediate + [end]
+
+    if tree_intersect_segment(tree, LineString(candidates)):
+        # Keep the current point even though could be < epsilon, recurse on both segments
+        left = dp_preserve(polygon_points[: index + 1], epsilon, tree)
+        right = dp_preserve(polygon_points[index:], epsilon, tree)
+        return LineString.merge([left, right])
+    else:
+        if max_area <= epsilon:
+            # All intermediate points are within epsilon: collapse to just [start, end]
+            # return LineString([start, end])
             # Fall back to polygon_points to ensure no self-intersections
             # return polygon_points
-
-            # Keep the current point even though < epsilon, recurse on both segments
-            left = douglas_peucker(polygon_points[: index + 1], epsilon, tree)
-            right = douglas_peucker(polygon_points[index:], epsilon, tree)
-            return LineString.merge([left, right])
-        else:
             # Collapse to [start, inter, end] only if no line segment crossings,
             # where inter are points with +ve areas to ensure coverage
-            return LineString([start] + intermediate + [end])
-    else:
-        # Keep the farthest point, recurse on both segments
-        left = douglas_peucker(polygon_points[: index + 1], epsilon, tree)
-        right = douglas_peucker(polygon_points[index:], epsilon, tree)
+            new_lines = [Line((candidates[point], candidates[point + 1])) for point in range(len(candidates) - 1)]
+            for new_line in new_lines:
+                tree.insert(ID, new_line.bbox(), new_line)
+            return LineString(candidates)
+        else:
+            # Keep the farthest point, recurse on both segments
+            left = dp_preserve(polygon_points[: index + 1], epsilon, tree)
+            right = dp_preserve(polygon_points[index:], epsilon, tree)
 
-        return LineString.merge([left, right])
+            return LineString.merge([left, right])
+
+
+def dp_indices(
+    polygon_points: LineString, tree: Rtree
+) -> {LineString, list[float]}:
+    """
+    Removal order for the Douglas–Peucker algorithm.
+    """
+    if len(polygon_points) < 3:
+        return polygon_points, []
+
+    start, end = polygon_points[0], polygon_points[-1]
+    intermediate = []
+    removal_order = []
+
+    # Find the point farthest from the [start, end] line
+    max_area = 0.0
+    index = 0
+    for i in range(1, len(polygon_points) - 1):
+        # Compute area formed by intermediate points with the end points line segment
+        a = Triangle((start, end, polygon_points[i])).signed_area()
+        if a > 0:
+            intermediate.append(polygon_points[i])
+        else:
+            removal_order.append(Triangle((polygon_points[i - 1], polygon_points[i], polygon_points[i + 1])).unsigned_area())
+        if abs(a) > max_area:
+            index, max_area = i, abs(a)
+
+    candidates = [start] + intermediate + [end]
+
+    if tree_intersect_segment(tree, LineString(candidates)):
+        # Keep the current point even though could be < epsilon, recurse on both segments
+        left, ro_left = dp_indices(polygon_points[: index + 1], tree)
+        right, ro_right = dp_indices(polygon_points[index:], tree)
+        return LineString.merge([left, right]), ro_left + ro_right
+    else:
+        if max_area <= 100.:
+            # Collapse to [start, inter, end] only if no line segment crossings,
+            # where inter are points with +ve areas to ensure coverage
+            new_lines = [Line((candidates[point], candidates[point + 1])) for point in range(len(candidates) - 1)]
+            for new_line in new_lines:
+                tree.insert(ID, new_line.bbox(), new_line)
+            return LineString(candidates), removal_order
+        else:
+            # Keep the farthest point, recurse on both segments
+            left, ro_left = dp_indices(polygon_points[: index + 1], tree)
+            right, ro_right = dp_indices(polygon_points[index:], tree)
+
+            return LineString.merge([left, right]), ro_left + ro_right
+
