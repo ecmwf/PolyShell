@@ -30,16 +30,16 @@ def data_stream(geoms: Iterable[Geometry]):
         yield ID, item.bbox(), item
 
 
-def worker_wraps(epsilon: float):
+def worker_wraps(i_p: int, epsilon: float):
     def worker(ls: LineString) -> LineString:
-        tree = Rtree(data_stream(ls.lines()))
-        return dp_preserve(ls, epsilon, tree)
+        # tree = Rtree(data_stream(ls.lines()))
+        return vw_preserve(ls, i_p, epsilon) # dp_preserve(ls, epsilon, tree)
 
     return worker
 
 
 def reduce_polygon(
-    polygon: Polygon, epsilon: float, max_workers: int | None = None
+    polygon: Polygon, i_p: int, epsilon: float, max_workers: int | None = None
 ) -> Polygon:
     """Reduce a polygon while retaining coverage."""
     # Slice into LineStrings
@@ -52,7 +52,7 @@ def reduce_polygon(
 
     # Dispatch and reconstitute
     with ThreadPoolExecutor(max_workers) as tpe:
-        reduced_segments = tpe.map(worker_wraps(epsilon), segments)
+        reduced_segments = tpe.map(worker_wraps(i_p, epsilon), segments)
 
     return Polygon.merge(reduced_segments)
 
@@ -94,7 +94,7 @@ def reduce_losses_dp(polygon: Polygon, max_workers: int | None = None) -> list[l
     return [scores for _, scores in reduced_segments]
 
 
-def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
+def vw_preserve(polygon_points: LineString, i_p: int, epsilon: float) -> LineString:
     """Visvalingam-Whyatt line reduction algorithm adapted to prevent crossings."""
     if len(polygon_points) < 3 or epsilon <= 0:
         return polygon_points
@@ -117,8 +117,15 @@ def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
     ]
     heapq.heapify(pq)
 
-    loss = 0
+    counter = 0
     while len(pq):
+
+        if counter == i_p:
+            break
+
+        # Update counter
+        counter += 1
+
         smallest = heapq.heappop(pq)
 
         if smallest.score > epsilon:
@@ -149,9 +156,6 @@ def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
 
         # Update adjacent triangles
         recompute_triangles(polygon_points, pq, ll, left, right, rr, max_points)
-
-        # Update loss
-        loss += smallest.score
 
     # Filter out any deleted points
     return LineString(

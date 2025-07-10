@@ -13,13 +13,29 @@ if __name__ == "__main__":
         original_polygon = np.array(pickle.load(f))
 
     original_polygon = Polygon([Coord(tuple(point)) for point in original_polygon])  # type: ignore
-    reduced_polygon = reduce_polygon(original_polygon, epsilon=1e-6)
+    reduced_polygon = reduce_polygon(original_polygon, epsilon=1e-5)
 
     # Extract data
     x_orig, y_orig = zip(*original_polygon)
     x_reduced, y_reduced = zip(*reduced_polygon)
 
+    # Define arrow tail and head coordinates
+    end = (21.311, 37.665)
+    start = (21.316, 37.675)
+
     # Plot original and reduced polygons
     plt.plot(x_orig, y_orig, "b-")
     plt.plot(x_reduced, y_reduced, "r-")
+    # plt.annotate('', xy=end, xytext=start,
+    #              arrowprops=dict(
+    #                  arrowstyle='fancy',
+    #                  color='black',
+    #                  lw=2,
+    #                  shrinkA=0, shrinkB=0,
+    #                  mutation_scale=5
+    #              ))
+    plt.annotate('', xy=end, xytext=start,
+                 arrowprops=dict(arrowstyle='->,head_length=1,head_width=0.5', color='black', lw=2))
+    plt.xlim([21.29, 21.34])
+    plt.ylim([37.62, 37.7])
     plt.show()
