@@ -20,6 +20,9 @@ dev = [
     "pytest-cases>=3.9.1",
     "shapely>=2.0.7",
 ]
+scripts = [
+    "matplotlib>=3.7.5",
+]
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
