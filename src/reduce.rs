@@ -248,19 +248,22 @@ where
                     LineString::new([&coord_vec[start..], &coord_vec[1..=end]].concat())
                 }
             })
-            .collect::<Vec<LineString<T>>>();
+            .collect::<Vec<_>>();
 
         // Reduce line segments and merge
-        let mut reduced_segments = segments
+        let reduced_segments = segments
             .into_par_iter() // parallelize with rayon
             .map(|ls| ls.simplify_vw_preserve(epsilon))
-            .collect::<Vec<LineString<T>>>()
-            .into_iter();
+            .collect::<Vec<_>>();
 
-        let mut exterior: Vec<Coord<T>> = reduced_segments.next().unwrap().into_inner();
-        for ls in reduced_segments {
-            exterior.extend(ls.coords().skip(1));
-        }
+        let exterior = reduced_segments
+            .into_iter()
+            .map(|ls| ls.into_inner())
+            .reduce(|mut acc, new| {
+                acc.extend(new.into_iter().skip(1));
+                acc
+            })
+            .unwrap();
 
         Polygon::new(LineString::new(exterior), vec![])
     }
