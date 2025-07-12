@@ -28,25 +28,25 @@ where
 
     for (index, v) in poly_iter {
         if matches!(
-            T::Ker::orient2d(v, hull.back().unwrap().1, hull.back_less().unwrap().1),
+            T::Ker::orient2d(v, hull.front().unwrap().1, hull.front_less().unwrap().1),
             Orientation::CounterClockwise
         ) || matches!(
-            T::Ker::orient2d(v, hull.front().unwrap().1, hull.front_less().unwrap().1),
+            T::Ker::orient2d(v, hull.back().unwrap().1, hull.back_less().unwrap().1),
             Orientation::Clockwise
         ) {
             while let Orientation::CounterClockwise =
-                T::Ker::orient2d(v, hull.back().unwrap().1, hull.back_less().unwrap().1)
-            {
-                hull.pop_back();
-            }
-            hull.push_back((index, v));
-
-            while let Orientation::Clockwise =
                 T::Ker::orient2d(v, hull.front().unwrap().1, hull.front_less().unwrap().1)
             {
                 hull.pop_front();
             }
+            while let Orientation::Clockwise =
+                T::Ker::orient2d(v, hull.back().unwrap().1, hull.back_less().unwrap().1)
+            {
+                hull.pop_back();
+            }
+
             hull.push_front((index, v));
+            hull.push_back((index, v));
         };
     }
 
