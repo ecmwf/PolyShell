@@ -1,20 +1,20 @@
 use crate::convex_hull::melkman_indices;
-use geo::{
-    Area, BoundingRect, Coord, CoordFloat, GeoFloat, Intersects, Line, LineString, Point, Polygon,
-    Triangle,
-};
-use rstar::primitives::CachedEnvelope;
-use rstar::{RTree, RTreeNum};
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
+use crate::geo_ext::{LineStringExt, OrdTriangle};
+
+use geo::algorithm::{Area, Intersects};
+use geo::geometry::{Coord, Line, LineString, Point, Polygon, Triangle};
+use geo::{CoordFloat, CoordNum, GeoFloat};
 
 use rayon::prelude::*;
 
+use rstar::primitives::CachedEnvelope;
+use rstar::{RTree, RTreeNum, RTreeObject};
+
+use std::cmp::Ordering;
+use std::collections::BinaryHeap;
+
 #[derive(Debug)]
-struct VScore<T>
-where
-    T: CoordFloat,
-{
+struct VScore<T: CoordFloat> {
     score: T,
     current: usize,
     left: usize,
@@ -22,19 +22,13 @@ where
 }
 
 // These impls give us a min-heap
-impl<T> Ord for VScore<T>
-where
-    T: CoordFloat,
-{
+impl<T: CoordFloat> Ord for VScore<T> {
     fn cmp(&self, other: &VScore<T>) -> Ordering {
         other.score.partial_cmp(&self.score).unwrap()
     }
 }
 
-impl<T> PartialOrd for VScore<T>
-where
-    T: CoordFloat,
-{
+impl<T: CoordFloat> PartialOrd for VScore<T> {
     fn partial_cmp(&self, other: &VScore<T>) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -42,29 +36,17 @@ where
 
 impl<T> Eq for VScore<T> where T: CoordFloat {}
 
-impl<T> PartialEq for VScore<T>
-where
-    T: CoordFloat,
-{
-    fn eq(&self, other: &VScore<T>) -> bool
-    where
-        T: CoordFloat,
-    {
+impl<T: CoordFloat> PartialEq for VScore<T> {
+    fn eq(&self, other: &VScore<T>) -> bool {
         self.score == other.score
     }
 }
 
-pub fn linestring_to_points<T>(linestring: &LineString<T>) -> Vec<[T; 2]>
-where
-    T: CoordFloat,
-{
+pub fn linestring_to_points<T: CoordNum>(linestring: &LineString<T>) -> Vec<[T; 2]> {
     linestring.coords().map(|c| [c.x, c.y]).collect()
 }
 
-pub fn polygon_to_points<T>(polygon: &Polygon<T>) -> Vec<[T; 2]>
-where
-    T: CoordFloat,
-{
+pub fn polygon_to_points<T: CoordNum>(polygon: &Polygon<T>) -> Vec<[T; 2]> {
     linestring_to_points(polygon.exterior())
 }
 
@@ -92,7 +74,7 @@ where
         .collect();
 
     let mut pq = orig
-        .triangles()
+        .ord_triangles()
         .enumerate()
         .map(|(i, triangle)| VScore {
             score: triangle.signed_area(),
@@ -158,12 +140,9 @@ where
         orig[triangle.current],
         orig[triangle.right],
     )
-        .bounding_rect();
+        .envelope();
 
-    tree.locate_in_envelope_intersecting(&rstar::AABB::from_corners(
-        bounding_rect.min().into(),
-        bounding_rect.max().into(),
-    ))
+    tree.locate_in_envelope_intersecting(&bounding_rect)
         .any(|candidate| {
             let (candidate_start, candidate_end) = candidate.points();
             candidate_start.0 != new_segment_start
@@ -174,7 +153,7 @@ where
         })
 }
 
-fn recompute_triangles<T>(
+fn recompute_triangles<T: CoordFloat>(
     orig: &LineString<T>,
     pq: &mut BinaryHeap<VScore<T>>,
     ll: i32,
@@ -182,16 +161,14 @@ fn recompute_triangles<T>(
     right: i32,
     rr: i32,
     max: usize,
-) where
-    T: CoordFloat,
-{
+) {
     let choices = [(ll, left, right), (left, right, rr)];
     for &(ai, current_point, bi) in &choices {
         if ai as usize >= max || bi as usize >= max {
             continue;
         }
 
-        let area = Triangle::new(
+        let area = OrdTriangle::new(
             orig.0[ai as usize],
             orig.0[current_point as usize],
             orig.0[bi as usize],
@@ -213,9 +190,7 @@ fn recompute_triangles<T>(
 }
 
 pub trait SimplifyVwPreserve<T, Epsilon = T> {
-    fn simplify_vw_preserve(&self, epsilon: T) -> Self
-    where
-        T: GeoFloat + RTreeNum;
+    fn simplify_vw_preserve(&self, epsilon: Epsilon) -> Self;
 }
 
 impl<T> SimplifyVwPreserve<T> for LineString<T>

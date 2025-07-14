@@ -4,8 +4,8 @@ use reduce::{polygon_to_points, SimplifyVwPreserve};
 
 mod convex_hull;
 mod reduce;
+mod geo_ext;
 
-/// Formats the sum of two numbers as string.
 #[pyfunction]
 fn reduce_polygon(orig: Vec<[f64; 2]>, epsilon: f64) -> PyResult<Vec<[f64; 2]>> {
     let polygon = Polygon::new(LineString::from(orig), vec![]);
@@ -14,7 +14,6 @@ fn reduce_polygon(orig: Vec<[f64; 2]>, epsilon: f64) -> PyResult<Vec<[f64; 2]>> 
     Ok(polygon_to_points(&red_polygon))
 }
 
-/// A Python module implemented in Rust.
 #[pymodule]
 fn polyshell(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(reduce_polygon, m)?)?;
