@@ -1,17 +1,24 @@
+use crate::reduce::vw_preserve::SimplifyVwPreserve;
 use geo::{LineString, Polygon};
 use pyo3::prelude::*;
-use reduce::{polygon_to_points, SimplifyVwPreserve};
 
 mod convex_hull;
 mod reduce;
 mod geo_ext;
 
 #[pyfunction]
-fn reduce_polygon(orig: Vec<[f64; 2]>, epsilon: f64) -> PyResult<Vec<[f64; 2]>> {
+fn reduce_polygon(orig: Vec<[f64; 2]>, epsilon: f64) -> PyResult<Vec<(f64, f64)>> {
+    // Instantiate a Polygon from a Vec of coordinates
     let polygon = Polygon::new(LineString::from(orig), vec![]);
-    let red_polygon = polygon.simplify_vw_preserve(epsilon);
-
-    Ok(polygon_to_points(&red_polygon))
+    
+    // Reduce and extract coordinates
+    let (exterior, _) = polygon.simplify_vw_preserve(epsilon).into_inner();
+    let coords = exterior
+        .into_iter()
+        .map(|c| c.x_y())
+        .collect::<Vec<_>>();
+    
+    Ok(coords)
 }
 
 #[pymodule]

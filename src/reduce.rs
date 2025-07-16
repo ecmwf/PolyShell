@@ -3,7 +3,7 @@ use crate::geo_ext::{LineStringExt, OrdTriangle};
 
 use geo::algorithm::{Area, Intersects};
 use geo::geometry::{Coord, Line, LineString, Point, Polygon, Triangle};
-use geo::{CoordFloat, CoordNum, GeoFloat};
+use geo::{CoordFloat, GeoFloat};
 
 use rayon::prelude::*;
 
@@ -40,14 +40,6 @@ impl<T: CoordFloat> PartialEq for VScore<T> {
     fn eq(&self, other: &VScore<T>) -> bool {
         self.score == other.score
     }
-}
-
-pub fn linestring_to_points<T: CoordNum>(linestring: &LineString<T>) -> Vec<[T; 2]> {
-    linestring.coords().map(|c| [c.x, c.y]).collect()
-}
-
-pub fn polygon_to_points<T: CoordNum>(polygon: &Polygon<T>) -> Vec<[T; 2]> {
-    linestring_to_points(polygon.exterior())
 }
 
 fn visvalingam_preserve<T>(orig: &LineString<T>, epsilon: T) -> Vec<Coord<T>>

@@ -17,10 +17,7 @@ impl<T> SecondIndex<T> for VecDeque<T> {
     }
 }
 
-pub fn melkman_indices<T>(poly: &Polygon<T>) -> Vec<usize>
-where
-    T: GeoNum,
-{
+pub fn melkman_indices<T: GeoNum>(poly: &Polygon<T>) -> Vec<usize> {
     let mut poly_iter = poly.exterior_coords_iter().enumerate();
     let x = poly_iter.next().unwrap();
     let y = poly_iter.next().unwrap();
