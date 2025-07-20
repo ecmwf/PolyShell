@@ -1,0 +1,4 @@
+site_name: PolyShell
+site_url: https://ecmwfcode4earth.github.io/polyshell
+theme:
+  name: material
