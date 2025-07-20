@@ -24,6 +24,7 @@ class CaseLarge:
         poly: list[tuple[float, float]] = random_polygon(
             num_points
         )  # This function is very slow
+        poly.append(poly[0])
         return Polygon.from_array(list(reversed(poly)))
 
 
