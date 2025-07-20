@@ -28,3 +28,6 @@ dev = [
     "pytest-cases>=3.9.1",
     "shapely>=2.1.1",
 ]
+
+[tool.pyright]
+typeCheckingMode = "strict"
