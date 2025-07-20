@@ -135,6 +135,7 @@ class LineString:
         return cls(points)
 
 
+@dataclass
 class Polygon(LineString):
     """A polygon represented as a closed LineString."""
 
