@@ -29,6 +29,9 @@ testing = [
 scripts = [
     "matplotlib>=3.7.5",
 ]
+docs = [
+    "mkdocs-material>=9.6.15",
+]
 
 [tool.maturin]
 python-source = "python"
