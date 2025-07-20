@@ -233,4 +233,4 @@ def melkman_indices(polygon: Polygon) -> list[int]:
             hull.popleft()
         hull.appendleft((index, v))
 
-    return [index for index, v in hull]
+    return [index for index, _ in hull]
