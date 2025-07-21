@@ -14,7 +14,7 @@ class CaseLarge:
 
     def case_ionian_sea(self) -> Polygon:
         """Polygon generated from the Ionian Sea."""
-        with open("tests/data/ionian_polygon_points.pkl", "rb") as f:
+        with open("tests/data/sea/ionian_sea.pkl", "rb") as f:
             return Polygon.from_array(pickle.load(f))
 
     @parametrize("num_points,seed", [(1000, 0)])
@@ -26,6 +26,30 @@ class CaseLarge:
         )  # This function is very slow
         poly.append(poly[0])
         return Polygon.from_array(list(reversed(poly)))
+    def case_afro_eurasia(self) -> Polygon:
+        """Polygon generated from the Afro-Eurasia land mass."""
+        with open("tests/data/land/afro_eurasia.pkl", "rb") as f:
+            return Polygon.from_array(pickle.load(f))
+
+    def case_americas(self) -> Polygon:
+        """Polygon generated from the Americas land mass."""
+        with open("tests/data/land/americas.pkl", "rb") as f:
+            return Polygon.from_array(pickle.load(f))
+
+    def case_antarctica(self) -> Polygon:
+        """Polygon generated from the Antarctic continent."""
+        with open("tests/data/land/antarctica.pkl", "rb") as f:
+            return Polygon.from_array(pickle.load(f))
+
+    def case_baffin_island(self) -> Polygon:
+        """Polygon generated from Baffin island."""
+        with open("tests/data/land/baffin_island.pkl", "rb") as f:
+            return Polygon.from_array(pickle.load(f))
+
+    def case_greenland(self) -> Polygon:
+        """Polygon generated from Greenland."""
+        with open("tests/data/land/greenland.pkl", "rb") as f:
+            return Polygon.from_array(pickle.load(f))
 
 
 class CaseSmall:
@@ -35,7 +59,7 @@ class CaseSmall:
         """Minimal polygons prone to self intersection."""
 
         def case_interlocking_teeth(self) -> Polygon:
-            """Two interlocking teeth with a narrow channel inbetween."""
+            """Two interlocking teeth with a narrow channel in-between."""
             return Polygon.from_array(
                 [
                     (0.0, 0.0),

@@ -10,7 +10,7 @@ from polyshell.geometry import Coord, Polygon
 import pyinstrument
 
 if __name__ == "__main__":
-    with open("./tests/data/ionian_polygon_points.pkl", "rb") as f:
+    with open("./tests/data/sea/ionian_sea.pkl", "rb") as f:
         original_polygon = np.array(pickle.load(f))
 
     original_polygon = Polygon([Coord(tuple(point)) for point in original_polygon])  # type: ignore
