@@ -305,15 +305,6 @@ wheels = [
 ]
 
 [[package]]
-name = "polygenerator"
-version = "0.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c5/ef/670c9d195be72ba5a13c93a7b9add843b3453ec96df98a75cd79a96dbb70/polygenerator-0.2.0.tar.gz", hash = "sha256:e48f8f47ace46faa7b3473fb0602ebd45820bfd921f685bb1ca35dbdff4ef1d6", size = 360654, upload-time = "2021-09-25T09:35:04.561Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8e/4b/29fb1821f87bf9cf337eb4cda04d4109db36965725241ffb181c204ef7c4/polygenerator-0.2.0-py2.py3-none-any.whl", hash = "sha256:3a942590003ea392df1b517830c19a4a6f8bd7660261b294c5f9398d23378125", size = 5758, upload-time = "2021-09-25T09:35:02.727Z" },
-]
-
-[[package]]
 name = "polyshell"
 version = "0.1.0"
 source = { editable = "." }
@@ -325,7 +316,6 @@ dependencies = [
 dev = [
     { name = "matplotlib" },
     { name = "numpy" },
-    { name = "polygenerator" },
     { name = "pyinstrument" },
     { name = "pytest" },
     { name = "pytest-cases" },
@@ -333,15 +323,12 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "rtree", specifier = ">=1.4.0" },
-]
+requires-dist = [{ name = "rtree", specifier = ">=1.4.0" }]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "numpy", specifier = ">=2.3.0" },
-    { name = "polygenerator", specifier = ">=0.2.0" },
     { name = "pyinstrument", specifier = ">=5.0.3" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-cases", specifier = ">=3.9.1" },

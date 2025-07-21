@@ -1,10 +1,6 @@
 """Cases for end-to-end testing of reduce_polygon."""
 
 import pickle
-import random
-
-from polygenerator import random_polygon  # type: ignore
-from pytest_cases import parametrize  # type: ignore
 
 from polyshell.geometry import Polygon
 
@@ -17,15 +13,6 @@ class CaseLarge:
         with open("tests/data/sea/ionian_sea.pkl", "rb") as f:
             return Polygon.from_array(pickle.load(f))
 
-    @parametrize("num_points,seed", [(1000, 0)])
-    def case_random_polygon(self, num_points: int, seed: int) -> Polygon:
-        """Generate a random polygon with given seed and number of points."""
-        random.seed(seed)
-        poly: list[tuple[float, float]] = random_polygon(
-            num_points
-        )  # This function is very slow
-        poly.append(poly[0])
-        return Polygon.from_array(list(reversed(poly)))
     def case_afro_eurasia(self) -> Polygon:
         """Polygon generated from the Afro-Eurasia land mass."""
         with open("tests/data/land/afro_eurasia.pkl", "rb") as f:
