@@ -11,7 +11,6 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "pyinstrument>=5.0.3",
     "rtree>=1.4.0",
 ]
 
@@ -23,7 +22,7 @@ build-backend = "hatchling.build"
 dev = [
     "matplotlib>=3.10.3",
     "numpy>=2.3.0",
-    "polygenerator>=0.2.0",
+    "pyinstrument>=5.0.3",
     "pytest>=8.4.1",
     "pytest-cases>=3.9.1",
     "shapely>=2.1.1",
