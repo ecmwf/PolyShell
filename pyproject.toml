@@ -15,7 +15,6 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-    "polygenerator>=0.2.0",
     "pyinstrument>=5.0.3",
     "pytest>=8.3.5",
     "pytest-cases>=3.9.1",
