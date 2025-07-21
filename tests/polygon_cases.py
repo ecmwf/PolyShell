@@ -12,7 +12,7 @@ class CaseLarge:
 
     def case_ionian_sea(self) -> list[tuple[float, float]]:
         """Polygon generated from the Ionian Sea."""
-        with open("tests/data/ionian_polygon_points.pkl", "rb") as f:
+        with open("tests/data/sea/ionian_sea.pkl", "rb") as f:
             return pickle.load(f)
 
     @parametrize("num_points,seed", [(1000, 0)])
@@ -23,6 +23,31 @@ class CaseLarge:
             num_points
         )  # This function is very slow
         return list(reversed(poly))
+    
+    def case_afro_eurasia(self) -> list[tuple[float, float]]:
+        """Polygon generated from the Afro-Eurasia land mass."""
+        with open("tests/data/land/afro_eurasia.pkl", "rb") as f:
+            return pickle.load(f)
+
+    def case_americas(self) -> list[tuple[float, float]]:
+        """Polygon generated from the Americas land mass."""
+        with open("tests/data/land/americas.pkl", "rb") as f:
+            return pickle.load(f)
+
+    def case_antarctica(self) -> list[tuple[float, float]]:
+        """Polygon generated from the Antarctic continent."""
+        with open("tests/data/land/antarctica.pkl", "rb") as f:
+            return pickle.load(f)
+
+    def case_baffin_island(self) -> list[tuple[float, float]]:
+        """Polygon generated from Baffin island."""
+        with open("tests/data/land/baffin_island.pkl", "rb") as f:
+            return pickle.load(f)
+
+    def case_greenland(self) -> list[tuple[float, float]]:
+        """Polygon generated from Greenland."""
+        with open("tests/data/land/greenland.pkl", "rb") as f:
+            return pickle.load(f)
 
 
 class CaseSmall:

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from polyshell import reduce_polygon
 
 if __name__ == "__main__":
-    with open("./tests/data/ionian_polygon_points.pkl", "rb") as f:
+    with open("./tests/data/sea/ionian_sea.pkl", "rb") as f:
         original_polygon = pickle.load(f)
 
     reduced_polygon = reduce_polygon(original_polygon, epsilon=1e-6)
