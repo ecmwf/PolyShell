@@ -47,7 +47,7 @@ def worker_wraps(epsilon: float, loss_fn: LossFunction):
     return worker
 
 
-def reduce_polygon(
+def reduce_polygon_vw(
     polygon: Polygon,
     epsilon: float,
     loss_fn: LossFunction,

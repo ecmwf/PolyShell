@@ -1,1 +1,1 @@
-from .vw import reduce_polygon
+from .vw import reduce_polygon_vw
