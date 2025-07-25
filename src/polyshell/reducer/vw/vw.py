@@ -1,20 +1,22 @@
+"""Visvalingam-Whyatt line reduction algorithm."""
+
 import heapq
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import Iterable, Optional
 
 from rtree.index import Rtree
 
+from polyshell.convex_hull import melkman_indices
 from polyshell.geometry import (
     Geometry,
     Line,
     LineString,
     Polygon,
     Triangle,
-    melkman_indices,
 )
 
-ID = 0
+ID = 0  # ID for rtree
 
 
 @dataclass(order=True)
@@ -44,16 +46,16 @@ def worker_wraps(epsilon: float):
 
 
 def reduce_polygon(
-    polygon: Polygon, epsilon: float, max_workers: int | None = None
+    polygon: Polygon,
+    epsilon: float,
+    max_workers: Optional[int] = None,
 ) -> Polygon:
     """Reduce a polygon while retaining coverage."""
-    # Slice into LineStrings
     vertices = melkman_indices(polygon)
     segments = [
         polygon[start : end + 1] for start, end in zip(vertices[:-1], vertices[1:])
     ]
 
-    # Dispatch and reconstitute
     with ThreadPoolExecutor(max_workers) as tpe:
         reduced_segments = tpe.map(worker_wraps(epsilon), segments)
 
@@ -114,7 +116,15 @@ def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
         tree.insert(ID, new_line.bbox(), new_line)
 
         # Update adjacent triangles
-        recompute_triangles(polygon_points, pq, ll, left, right, rr, max_points)
+        recompute_triangles(
+            polygon_points,
+            pq,
+            ll,
+            left,
+            right,
+            rr,
+            max_points,
+        )
 
         # Update loss
         loss += smallest.score
@@ -133,19 +143,22 @@ def recompute_triangles(
     right: int,
     rr: int,
     max: int,
-) -> None:
+):
     choices = [(ll, left, right), (left, right, rr)]
     for ai, current_point, bi in choices:
         if not (0 <= ai < max and 0 <= bi < max):
-            # Out of bounds
-            continue
+            continue  # out of bounds
 
         area = Triangle((points[ai], points[current_point], points[bi])).signed_area()
         if area < 0:
-            # Do not push negative areas
-            continue
+            continue  # do not push negative areas
 
-        v = VWScore(area, current_point, ai, bi)
+        v = VWScore(
+            score=area,
+            current=current_point,
+            left=ai,
+            right=bi,
+        )
         heapq.heappush(pq, v)
 
 

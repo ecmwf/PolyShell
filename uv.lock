@@ -315,7 +315,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "matplotlib" },
-    { name = "numpy" },
     { name = "pyinstrument" },
     { name = "pytest" },
     { name = "pytest-cases" },
@@ -328,7 +327,6 @@ requires-dist = [{ name = "rtree", specifier = ">=1.4.0" }]
 [package.metadata.requires-dev]
 dev = [
     { name = "matplotlib", specifier = ">=3.10.3" },
-    { name = "numpy", specifier = ">=2.3.0" },
     { name = "pyinstrument", specifier = ">=5.0.3" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-cases", specifier = ">=3.9.1" },
