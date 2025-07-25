@@ -16,6 +16,8 @@ from polyshell.geometry import (
     Triangle,
 )
 
+from .loss_funcs import LossFunction
+
 ID = 0  # ID for rtree
 
 
@@ -38,9 +40,9 @@ def data_stream(geoms: Iterable[Geometry]):
         yield ID, item.bbox(), item
 
 
-def worker_wraps(epsilon: float):
+def worker_wraps(epsilon: float, loss_fn: LossFunction):
     def worker(ls: LineString) -> LineString:
-        return vw_preserve(ls, epsilon)
+        return vw_preserve(ls, epsilon, loss_fn)
 
     return worker
 
@@ -48,6 +50,7 @@ def worker_wraps(epsilon: float):
 def reduce_polygon(
     polygon: Polygon,
     epsilon: float,
+    loss_fn: LossFunction,
     max_workers: Optional[int] = None,
 ) -> Polygon:
     """Reduce a polygon while retaining coverage."""
@@ -57,12 +60,14 @@ def reduce_polygon(
     ]
 
     with ThreadPoolExecutor(max_workers) as tpe:
-        reduced_segments = tpe.map(worker_wraps(epsilon), segments)
+        reduced_segments = tpe.map(worker_wraps(epsilon, loss_fn), segments)
 
     return Polygon.merge(reduced_segments)
 
 
-def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
+def vw_preserve(
+    polygon_points: LineString, epsilon: float, loss_fn: LossFunction
+) -> LineString:
     """Visvalingam-Whyatt line reduction algorithm adapted to prevent crossings."""
     if len(polygon_points) < 3 or epsilon <= 0:
         return polygon_points
@@ -75,13 +80,13 @@ def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
 
     pq = [
         VWScore(
-            score=area,
+            score,
             current=i + 1,
             left=i,
             right=i + 2,
         )
         for i, triangle in enumerate(polygon_points.triangles())
-        if (area := triangle.signed_area()) >= 0
+        if (score := loss_fn(triangle)) >= 0
     ]
     heapq.heapify(pq)
 
@@ -124,6 +129,7 @@ def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
             right,
             rr,
             max_points,
+            loss_fn,
         )
 
         # Update loss
@@ -143,18 +149,19 @@ def recompute_triangles(
     right: int,
     rr: int,
     max: int,
+    loss_fn: LossFunction,
 ):
     choices = [(ll, left, right), (left, right, rr)]
     for ai, current_point, bi in choices:
         if not (0 <= ai < max and 0 <= bi < max):
             continue  # out of bounds
 
-        area = Triangle((points[ai], points[current_point], points[bi])).signed_area()
-        if area < 0:
+        score = loss_fn(Triangle((points[ai], points[current_point], points[bi])))
+        if score < 0:
             continue  # do not push negative areas
 
         v = VWScore(
-            score=area,
+            score,
             current=current_point,
             left=ai,
             right=bi,
