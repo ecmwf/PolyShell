@@ -10,6 +10,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 geo = "0.30.0"
+hashbrown = "0.15.5"
 pyo3 = "0.25.0"
 rayon = "1.10.0"
 rstar = "0.12.2"
+spade = "2.14.0"

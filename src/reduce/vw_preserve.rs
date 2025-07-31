@@ -1,5 +1,5 @@
-use crate::convex_hull::melkman_indices;
-use crate::geo_ext::{LineStringExt, OrdTriangle};
+use crate::convex_hull::melkman::melkman_indices;
+use crate::extensions::geo_ext::{LineStringExt, OrdTriangle};
 
 use geo::algorithm::{Area, Intersects};
 use geo::geometry::{Coord, Line, LineString, Point, Polygon, Triangle};
@@ -14,7 +14,7 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
 #[derive(Debug)]
-struct VScore<T: CoordFloat> {
+struct VWScore<T: CoordFloat> {
     score: T,
     current: usize,
     left: usize,
@@ -22,22 +22,22 @@ struct VScore<T: CoordFloat> {
 }
 
 // These impls give us a min-heap
-impl<T: CoordFloat> Ord for VScore<T> {
-    fn cmp(&self, other: &VScore<T>) -> Ordering {
+impl<T: CoordFloat> Ord for VWScore<T> {
+    fn cmp(&self, other: &VWScore<T>) -> Ordering {
         other.score.partial_cmp(&self.score).unwrap()
     }
 }
 
-impl<T: CoordFloat> PartialOrd for VScore<T> {
-    fn partial_cmp(&self, other: &VScore<T>) -> Option<Ordering> {
+impl<T: CoordFloat> PartialOrd for VWScore<T> {
+    fn partial_cmp(&self, other: &VWScore<T>) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<T> Eq for VScore<T> where T: CoordFloat {}
+impl<T> Eq for VWScore<T> where T: CoordFloat {}
 
-impl<T: CoordFloat> PartialEq for VScore<T> {
-    fn eq(&self, other: &VScore<T>) -> bool {
+impl<T: CoordFloat> PartialEq for VWScore<T> {
+    fn eq(&self, other: &VWScore<T>) -> bool {
         self.score == other.score
     }
 }
@@ -68,14 +68,14 @@ where
     let mut pq = orig
         .ord_triangles()
         .enumerate()
-        .map(|(i, triangle)| VScore {
+        .map(|(i, triangle)| VWScore {
             score: triangle.signed_area(),
             current: i + 1,
             left: i,
             right: i + 2,
         })
         .filter(|point| point.score >= T::zero())
-        .collect::<BinaryHeap<VScore<T>>>();
+        .collect::<BinaryHeap<VWScore<T>>>();
 
     while let Some(smallest) = pq.pop() {
         if smallest.score > epsilon {
@@ -113,7 +113,7 @@ where
 
 fn tree_intersect<T>(
     tree: &RTree<CachedEnvelope<Line<T>>>,
-    triangle: &VScore<T>,
+    triangle: &VWScore<T>,
     orig: &[Coord<T>],
 ) -> bool
 where
@@ -132,7 +132,7 @@ where
         orig[triangle.current],
         orig[triangle.right],
     )
-        .envelope();
+    .envelope();
 
     tree.locate_in_envelope_intersecting(&bounding_rect)
         .any(|candidate| {
@@ -147,7 +147,7 @@ where
 
 fn recompute_triangles<T: CoordFloat>(
     orig: &LineString<T>,
-    pq: &mut BinaryHeap<VScore<T>>,
+    pq: &mut BinaryHeap<VWScore<T>>,
     ll: i32,
     left: i32,
     right: i32,
@@ -165,13 +165,13 @@ fn recompute_triangles<T: CoordFloat>(
             orig.0[current_point as usize],
             orig.0[bi as usize],
         )
-            .signed_area();
+        .signed_area();
 
         if area < T::zero() {
             continue;
         }
 
-        let v = VScore {
+        let v = VWScore {
             score: area,
             current: current_point as usize,
             left: ai as usize,
