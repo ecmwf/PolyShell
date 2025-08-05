@@ -22,6 +22,9 @@ class Coord:
     def __eq__(self, other: "Coord") -> bool:  # type: ignore
         return self.coords == other.coords
 
+    def __abs__(self) -> float:
+        return (self.coords[0] ** 2 + self.coords[1] ** 2) ** 0.5
+
     def __iter__(self) -> Iterator[float]:
         return iter(self.coords)
 
@@ -73,6 +76,10 @@ class Line(Geometry):
 
         # Check that candidate point is in bounds
         return (0 <= lam <= 1) and (0 <= mu <= 1)
+
+    def length(self) -> float:
+        """Compute the Euclidean length."""
+        return abs(self.points[1] - self.points[0])
 
 
 @dataclass(frozen=True)
