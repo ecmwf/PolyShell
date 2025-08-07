@@ -16,7 +16,10 @@ def melkman(polygon: Polygon) -> Polygon:
 
     while poly_iter:
         for v in poly_iter:
-            if v.orientation(hull[0], hull[1]) > 0 or hull[-2].orientation(hull[-1], v):
+            if (
+                v.orientation(hull[0], hull[1]) < 0
+                or hull[-2].orientation(hull[-1], v) < 0
+            ):
                 break
         else:  # iterator is empty
             break
