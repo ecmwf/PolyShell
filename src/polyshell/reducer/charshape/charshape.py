@@ -65,15 +65,18 @@ def char_shape(orig: Polygon, epsilon: float) -> Polygon:
         if largest.score < epsilon:
             break
 
-        coprime_node = simplices[largest.simplex_id][largest.coprime]
-
         # Regularity check
+        simplex = simplices[largest.simplex_id]
+        coprime_node = simplex[largest.coprime]
+        start, end = get_edge_nodes(simplex, largest.coprime)
+
         if coprime_node in boundary_nodes:
             continue
+        if (start - end) == 1 or (start - end) == -1:
+            continue
 
+        # Update boundary nodes and edges
         boundary_nodes.add(coprime_node)
-
-        # Add new edges to pq
         recompute_boundary(
             orig, largest.simplex_id, largest.coprime, simplices, neighbors, pq
         )
@@ -83,10 +86,16 @@ def char_shape(orig: Polygon, epsilon: float) -> Polygon:
     return Polygon([orig[node] for node in boundary_nodes] + [orig[boundary_nodes[0]]])
 
 
+# TODO: Is there a more elegant way to do this?
 def get_edge(orig: Polygon, simplex: tuple[int, int, int], coprime: int) -> Line:
     """Return an edge from a simplex given its corresponding coprime node."""
-    start, end = simplex[(coprime + 1) % 3], simplex[(coprime + 2) % 3]
+    start, end = get_edge_nodes(simplex, coprime)
     return Line((orig[start], orig[end]))
+
+
+def get_edge_nodes(simplex: tuple[int, int, int], coprime: int) -> tuple[int, int]:
+    """Return an edge from a simplex given its corresponding coprime node."""
+    return simplex[(coprime + 1) % 3], simplex[(coprime + 2) % 3]
 
 
 def recompute_boundary(
@@ -107,6 +116,8 @@ def recompute_boundary(
         for new_coprime, neighbor in enumerate(neighbors[new_simplex_id]):
             if neighbor == simplex_id:
                 break
+        else:
+            assert False, "neighbors does not commute"
 
         score = get_edge(orig, simplex, node).length()
         e = EdgeScore(
