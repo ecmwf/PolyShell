@@ -1,9 +1,13 @@
 """Fixtures and test cases."""
 
-from polyshell import reduce_polygon
-from pytest_cases import fixture  # type: ignore
+from typing import Callable
+
+from pytest_cases import fixture, parametrize_with_cases  # type: ignore
 
 
 @fixture(scope="class")
-def simplified(polygon: list[tuple[float, float]]) -> list[tuple[float, float]]:
-    return reduce_polygon(polygon, epsilon=1e-6)
+@parametrize_with_cases("method", cases=".method_cases", scope="class")
+def simplified(
+    polygon: list[tuple[float, float]], method: Callable
+) -> list[tuple[float, float]]:
+    return method(polygon, epsilon=1e-6)
