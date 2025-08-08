@@ -8,7 +8,7 @@ from scipy.stats import linregress
 
 from polyshell import reduce_polygon
 from polyshell.cli.utils import load_from_path
-from polyshell.convex_hull import melkman, melkman_indices
+from polyshell.convex_hull import melkman
 
 app = typer.Typer()
 
