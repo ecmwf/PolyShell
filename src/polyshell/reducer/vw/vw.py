@@ -1,18 +1,15 @@
 """Visvalingam-Whyatt line reduction algorithm."""
 
 import heapq
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
 from rtree.index import Rtree
 
-from polyshell.convex_hull import melkman_indices
 from polyshell.geometry import (
     Geometry,
     Line,
     LineString,
-    Polygon,
     Triangle,
 )
 
@@ -35,7 +32,7 @@ class VWScore:
         self.sort_index = self.score
 
 
-class VWState:
+class VWLineString:
     def __init__(self, orig: LineString, loss_fn: LossFunction):
         self.orig = orig
         self.loss_fn = loss_fn
@@ -54,6 +51,7 @@ class VWState:
             if (score := loss_fn(triangle)) >= 0
         ]
         heapq.heapify(self.pq)
+        self.len = self.max
         self.loss = 0.0
 
     def into(self) -> LineString:
@@ -61,8 +59,8 @@ class VWState:
             [point for point, adj in zip(self.orig, self.adjacent) if adj != (0, 0)]
         )
 
-    def reduce(self, epsilon: float) -> None:
-        while len(self.pq):
+    def reduce(self, epsilon: float, min_len: int) -> None:
+        while len(self.pq) and self.len > min_len:
             smallest = heapq.heappop(self.pq)
 
             if smallest.score > epsilon:
@@ -98,6 +96,7 @@ class VWState:
 
             # Update loss
             self.loss += smallest.score
+            self.len -= 1
 
     def tree_intersect(self, triangle: VWScore) -> bool:
         """Check if removal of a triangle causes a self-intersection."""
@@ -158,32 +157,6 @@ class VWState:
             heapq.heappush(self.pq, v)
 
 
-def reduce_polygon_vw(
-        polygon: Polygon,
-        epsilon: float,
-        loss_fn: LossFunction,
-        max_workers: Optional[int] = None,
-) -> Polygon:
-    """Reduce a polygon while retaining coverage."""
-    vertices = melkman_indices(polygon)
-    segments = [
-        polygon[start : end + 1] for start, end in zip(vertices[:-1], vertices[1:])
-    ]
-    vw_states = [VWState(ls, loss_fn) for ls in segments]
-
-    with ThreadPoolExecutor(max_workers) as tpe:
-        tpe.map(worker_wraps(epsilon), vw_states)
-
-    return Polygon.merge([state.into() for state in vw_states])
-
-
 def data_stream(geoms: Iterable[Geometry]):
     for item in geoms:
         yield ID, item.bbox(), item
-
-
-def worker_wraps(epsilon: float):
-    def worker(state: VWState):
-        state.reduce(epsilon)
-
-    return worker
