@@ -36,10 +36,10 @@ def data_stream(geoms: Iterable[Geometry]):
         yield ID, item.bbox(), item
 
 
-def worker_wraps(i_p: int, epsilon: float):
+def worker_wraps(epsilon: float):
     def worker(ls: LineString) -> LineString:
         # tree = Rtree(data_stream(ls.lines()))
-        return vw_preserve(ls, i_p, epsilon) # dp_preserve(ls, epsilon, tree)
+        return vw_preserve(ls, epsilon) # dp_preserve(ls, epsilon, tree)
 
     return worker
 
@@ -63,8 +63,7 @@ def reduce_polygon(
 
 def reduce_losses(polygon: Polygon, max_workers: int | None = None) -> list[list[float]]:
     # Slice into LineStrings
-    vertices = ConvexHull(polygon.to_array()).vertices[::-1]
-    vertices = list([*vertices, vertices[0]])
+    vertices = melkman_indices(polygon)
     segments = [
         polygon[start: end + 1]
         for start, end in zip(vertices[:-1], vertices[1:])
@@ -79,8 +78,7 @@ def reduce_losses(polygon: Polygon, max_workers: int | None = None) -> list[list
 
 def reduce_losses_dp(polygon: Polygon, max_workers: int | None = None) -> list[list[float]]:
     # Slice into LineStrings
-    vertices = ConvexHull(polygon.to_array()).vertices[::-1]
-    vertices = list([*vertices, vertices[0]])
+    vertices = melkman_indices(polygon)
     segments = [
         polygon[start: end + 1]
         for start, end in zip(vertices[:-1], vertices[1:])
@@ -98,7 +96,7 @@ def reduce_losses_dp(polygon: Polygon, max_workers: int | None = None) -> list[l
     return [scores for _, scores in reduced_segments]
 
 
-def vw_preserve(polygon_points: LineString, i_p: int, epsilon: float) -> LineString:
+def vw_preserve(polygon_points: LineString, epsilon: float) -> LineString:
     """Visvalingam-Whyatt line reduction algorithm adapted to prevent crossings."""
     if len(polygon_points) < 3 or epsilon <= 0:
         return polygon_points
@@ -121,15 +119,8 @@ def vw_preserve(polygon_points: LineString, i_p: int, epsilon: float) -> LineStr
     ]
     heapq.heapify(pq)
 
-    counter = 0
+    loss = 0
     while len(pq):
-
-        if counter == i_p:
-            break
-
-        # Update counter
-        counter += 1
-
         smallest = heapq.heappop(pq)
 
         if smallest.score > epsilon:
@@ -161,6 +152,9 @@ def vw_preserve(polygon_points: LineString, i_p: int, epsilon: float) -> LineStr
         # Update adjacent triangles
         recompute_triangles(polygon_points, pq, ll, left, right, rr, max_points)
 
+        # Update loss
+        loss += smallest.score
+
     # Filter out any deleted points
     return LineString(
         [point for point, adj in zip(polygon_points, adjacent) if adj != (0, 0)]
@@ -187,7 +181,7 @@ def vw_indices(polygon_points: LineString) -> list[VWScore]:
     ]
     heapq.heapify(pq)
 
-    removal_order = []
+    removal_order: list[VWScore] = []
     while len(pq):
         smallest = heapq.heappop(pq)
 
@@ -280,7 +274,7 @@ def tree_intersect(tree: Rtree, triangle: VWScore, points: LineString) -> bool:
 
 def tree_intersect_segment(tree: Rtree, points: LineString) -> bool:
     """
-    Return True if any segment in the given LineString ``points``
+    Returns True if any segment in the given LineString ``points``
     intersects an existing segment in the R-tree ``tree``.
     """
     # Iterate over each consecutive pair in points
@@ -358,7 +352,7 @@ def dp_preserve(
 
 def dp_indices(
     polygon_points: LineString, tree: Rtree
-) -> {LineString, list[float]}:
+) -> (LineString, list[float]):
     """
     Removal order for the Douglas–Peucker algorithm.
     """
