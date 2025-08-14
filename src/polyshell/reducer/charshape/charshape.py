@@ -2,6 +2,7 @@
 
 import heapq
 from dataclasses import dataclass, field
+from typing import Optional
 
 from scipy.spatial import Delaunay
 
@@ -29,8 +30,13 @@ def reduce_polygon_charshape(
     return char_shape(polygon, epsilon)
 
 
-def char_shape(orig: Polygon, epsilon: float) -> Polygon:
+def char_shape(
+    orig: Polygon, epsilon: float, max_length: Optional[int] = None
+) -> Polygon:
     """Characteristic shape reduction algorithm."""
+    if max_length is None:
+        max_length = len(orig)
+
     tri = Delaunay(orig.to_array())
     simplices: list[tuple[int, int, int]] = tri.simplices  # type: ignore
     neighbors: list[tuple[int, int, int]] = tri.neighbors  # type: ignore
@@ -56,7 +62,7 @@ def char_shape(orig: Polygon, epsilon: float) -> Polygon:
     ]
     heapq.heapify(pq)
 
-    while len(pq):
+    while len(pq) and len(boundary_nodes) < max_length:
         largest = heapq.heappop(pq)
 
         if largest.score < epsilon:
