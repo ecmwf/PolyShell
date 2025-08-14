@@ -135,7 +135,7 @@ fn recompute_boundary<'a, T>(
     for new_edge in choices {
         let e = CharScore {
             score: new_edge.length_2(),
-            edge: new_edge,
+            edge: new_edge.rev(),
         };
         pq.push(e);
     }
