@@ -25,6 +25,8 @@ scripts = [
 ]
 
 [tool.maturin]
+python-source = "python"
+module-name = "polyshell._polyshell"
 features = ["pyo3/extension-module"]
 
 [tool.uv]

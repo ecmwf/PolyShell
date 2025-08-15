@@ -32,7 +32,7 @@ fn reduce_polygon_char(orig: Vec<[f64; 2]>, epsilon: f64) -> PyResult<Vec<(f64, 
 }
 
 #[pymodule]
-fn polyshell(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _polyshell(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(reduce_polygon_vw, m)?)?;
     m.add_function(wrap_pyfunction!(reduce_polygon_char, m)?)?;
     Ok(())
