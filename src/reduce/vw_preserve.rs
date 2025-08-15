@@ -2,7 +2,7 @@ use crate::convex_hull::melkman::melkman_indices;
 use crate::extensions::geo_ext::{LineStringExt, OrdTriangle};
 
 use geo::algorithm::{Area, Intersects};
-use geo::geometry::{Coord, Line, LineString, Point, Polygon, Triangle};
+use geo::geometry::{Coord, Line, LineString, Point, Polygon};
 use geo::{CoordFloat, GeoFloat};
 
 use rayon::prelude::*;
@@ -52,7 +52,7 @@ where
 
     let max = orig.0.len();
 
-    let mut tree: RTree<CachedEnvelope<_>> =
+    let tree: RTree<CachedEnvelope<_>> =
         RTree::bulk_load(orig.lines().map(CachedEnvelope::new).collect::<Vec<_>>());
 
     let mut adjacent: Vec<_> = (0..orig.0.len())
@@ -97,10 +97,6 @@ where
         adjacent[right as usize] = (left, rr);
         adjacent[smallest.current] = (0, 0);
 
-        let left_point = Coord::from(orig.0[left as usize]);
-        let right_point = Coord::from(orig.0[right as usize]);
-        tree.insert(CachedEnvelope::new(Line::new(left_point, right_point)));
-
         recompute_triangles(orig, &mut pq, ll, left, right, rr, max);
     }
 
@@ -123,16 +119,11 @@ where
     let new_segment_end = orig[triangle.right];
 
     let new_segment = CachedEnvelope::new(Line::new(
-        Point::from(orig[triangle.left]),
-        Point::from(orig[triangle.right]),
+        Point::from(new_segment_start),
+        Point::from(new_segment_end),
     ));
 
-    let bounding_rect = Triangle::new(
-        orig[triangle.left],
-        orig[triangle.current],
-        orig[triangle.right],
-    )
-    .envelope();
+    let bounding_rect = new_segment.envelope();
 
     tree.locate_in_envelope_intersecting(&bounding_rect)
         .any(|candidate| {
@@ -141,7 +132,7 @@ where
                 && candidate_start.0 != new_segment_end
                 && candidate_end.0 != new_segment_start
                 && candidate_end.0 != new_segment_end
-                && (*new_segment).intersects(&**candidate)
+                && new_segment.intersects(&**candidate)
         })
 }
 
