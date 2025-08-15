@@ -24,19 +24,24 @@ class EdgeScore:
 
 def reduce_polygon_charshape(
     polygon: Polygon,
-    epsilon: float,
+    epsilon: float = float("inf"),
+    max_loss: float = float("inf"),
+    max_length: Optional[int] = None,
 ) -> Polygon:
     """Reduce a polygon while retaining coverage."""
-    return char_shape(polygon, epsilon)
+    if max_length is None:
+        max_length = len(polygon)
+
+    return char_shape(polygon, epsilon, max_loss, max_length)
 
 
 def char_shape(
-    orig: Polygon, epsilon: float, max_length: Optional[int] = None
+    orig: Polygon,
+    epsilon: float,
+    max_loss: float,
+    max_length: int,
 ) -> Polygon:
     """Characteristic shape reduction algorithm."""
-    if max_length is None:
-        max_length = len(orig)
-
     tri = Delaunay(orig.to_array())
     simplices: list[tuple[int, int, int]] = tri.simplices  # type: ignore
     neighbors: list[tuple[int, int, int]] = tri.neighbors  # type: ignore
@@ -62,10 +67,15 @@ def char_shape(
     ]
     heapq.heapify(pq)
 
+    loss = 0.0
     while len(pq) and len(boundary_nodes) < max_length:
         largest = heapq.heappop(pq)
 
         if largest.score < epsilon:
+            break
+
+        loss += largest.score
+        if loss > max_loss:
             break
 
         # Regularity check

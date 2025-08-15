@@ -33,6 +33,7 @@ dev = [
     "pyinstrument>=5.0.3",
     "pytest>=8.4.1",
     "pytest-cases>=3.9.1",
+    "scipy-stubs>=1.16.1.0",
     "shapely>=2.1.1",
 ]
 
