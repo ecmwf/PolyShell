@@ -13,9 +13,9 @@ impl<T: CoordNum> OrdTriangle<T> {
     }
 }
 
-impl<T: CoordNum> Into<Triangle<T>> for OrdTriangle<T> {
-    fn into(self) -> Triangle<T> {
-        Triangle::new(self.0, self.1, self.2)
+impl<T: CoordNum> From<OrdTriangle<T>> for Triangle<T> {
+    fn from(other: OrdTriangle<T>) -> Self {
+        Self(other.0, other.1, other.2)
     }
 }
 
@@ -29,11 +29,11 @@ impl<T: CoordFloat> Area<T> for OrdTriangle<T> {
     }
 }
 
-pub trait LineStringExt<T: CoordNum> {
+pub trait OrdTriangles<T: CoordNum> {
     fn ord_triangles(&'_ self) -> impl ExactSizeIterator<Item = OrdTriangle<T>> + '_;
 }
 
-impl<T: CoordNum> LineStringExt<T> for LineString<T> {
+impl<T: CoordNum> OrdTriangles<T> for LineString<T> {
     fn ord_triangles(&'_ self) -> impl ExactSizeIterator<Item = OrdTriangle<T>> + '_ {
         self.0.windows(3).map(|w| unsafe {
             OrdTriangle::new(

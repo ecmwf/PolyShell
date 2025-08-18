@@ -1,5 +1,4 @@
-use crate::convex_hull::melkman::melkman_indices;
-use crate::extensions::geo_ext::{LineStringExt, OrdTriangle};
+use crate::extensions::ord_triangles::{OrdTriangle, OrdTriangles};
 
 use geo::algorithm::{Area, Intersects};
 use geo::geometry::{Coord, Line, LineString, Point, Polygon};
@@ -10,6 +9,7 @@ use rayon::prelude::*;
 use rstar::primitives::CachedEnvelope;
 use rstar::{RTree, RTreeNum, RTreeObject};
 
+use crate::extensions::segments::{FromSegments, HullSegments};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
@@ -172,57 +172,30 @@ fn recompute_triangles<T: CoordFloat>(
     }
 }
 
-pub trait SimplifyVwPreserve<T, Epsilon = T> {
-    fn simplify_vw_preserve(&self, epsilon: Epsilon) -> Self;
+pub trait SimplifyVW<T, Epsilon = T> {
+    fn simplify_vw(&self, epsilon: Epsilon) -> Self;
 }
 
-impl<T> SimplifyVwPreserve<T> for LineString<T>
+impl<T> SimplifyVW<T> for LineString<T>
 where
     T: GeoFloat + RTreeNum,
 {
-    fn simplify_vw_preserve(&self, epsilon: T) -> Self {
+    fn simplify_vw(&self, epsilon: T) -> Self {
         LineString::from(visvalingam_preserve(self, epsilon))
     }
 }
 
-impl<T> SimplifyVwPreserve<T> for Polygon<T>
+impl<T> SimplifyVW<T> for Polygon<T>
 where
     T: GeoFloat + RTreeNum + Send + Sync,
 {
-    fn simplify_vw_preserve(&self, epsilon: T) -> Self {
-        // Divide into segments between convex hull vertices
-        let hull_indices = melkman_indices(self);
-        let coord_vec = &self.exterior().0;
-
-        let segments = hull_indices
-            .windows(2)
-            .map(|window| {
-                let &[start, end] = window else {
-                    unreachable!()
-                };
-                if start <= end {
-                    LineString::new(coord_vec[start..=end].to_vec())
-                } else {
-                    LineString::new([&coord_vec[start..], &coord_vec[1..=end]].concat())
-                }
-            })
-            .collect::<Vec<_>>();
-
-        // Reduce line segments and merge
-        let reduced_segments = segments
+    fn simplify_vw(&self, epsilon: T) -> Self {
+        let reduced_segments = self
+            .hull_segments()
             .into_par_iter() // parallelize with rayon
-            .map(|ls| ls.simplify_vw_preserve(epsilon))
+            .map(|ls| ls.simplify_vw(epsilon))
             .collect::<Vec<_>>();
 
-        let exterior = reduced_segments
-            .into_iter()
-            .map(|ls| ls.into_inner())
-            .reduce(|mut acc, new| {
-                acc.extend(new.into_iter().skip(1));
-                acc
-            })
-            .unwrap();
-
-        Polygon::new(LineString::new(exterior), vec![])
+        Polygon::from_segments(reduced_segments)
     }
 }

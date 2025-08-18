@@ -1,4 +1,4 @@
-use geo::{CoordsIter, GeoNum, Kernel, Orientation, Polygon};
+use geo::{Coord, CoordsIter, GeoNum, Kernel, Orientation, Polygon};
 use std::collections::VecDeque;
 use std::ops::Sub;
 
@@ -17,7 +17,7 @@ impl<T> SecondIndex<T> for VecDeque<T> {
     }
 }
 
-pub fn melkman_indices<T: GeoNum>(poly: &Polygon<T>) -> Vec<usize> {
+fn melkman<T: GeoNum>(poly: &Polygon<T>) -> Vec<(usize, Coord<T>)> {
     let mut poly_iter = poly.exterior_coords_iter().enumerate();
     let x = poly_iter.next().unwrap();
     let y = poly_iter.next().unwrap();
@@ -46,6 +46,15 @@ pub fn melkman_indices<T: GeoNum>(poly: &Polygon<T>) -> Vec<usize> {
             hull.push_back((index, v));
         };
     }
+    hull.into()
+}
 
-    hull.into_iter().map(|(index, _)| index).collect()
+pub trait Melkman<T: GeoNum> {
+    fn hull_indices(&self) -> Vec<usize>;
+}
+
+impl<T: GeoNum> Melkman<T> for Polygon<T> {
+    fn hull_indices(&self) -> Vec<usize> {
+        melkman(self).into_iter().map(|(index, _)| index).collect()
+    }
 }

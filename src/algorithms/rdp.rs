@@ -1,5 +1,5 @@
-use crate::convex_hull::melkman::melkman_indices;
-use crate::extensions::geo_ext::OrdTriangle;
+use crate::extensions::ord_triangles::OrdTriangle;
+use crate::extensions::segments::{FromSegments, HullSegments};
 use geo::{Area, Coord, GeoFloat, Intersects, Line, LineString, Polygon};
 use rayon::prelude::*;
 use rstar::primitives::CachedEnvelope;
@@ -33,21 +33,10 @@ where
                     return (index, distance);
                 };
                 (farthest_index, farthest_distance)
-                // if distance.abs() >= farthest_distance.abs() {
-                //     (index, distance)
-                // } else {
-                //     (farthest_index, farthest_distance)
-                // }
             },
         );
 
     let first_last_line = CachedEnvelope::new(Line::new(first, last));
-
-    // if farthest_distance >= T::zero() && tree_intersect(first_last_line, tree) {
-    //     println!("Self intersection at {:?}", *first_last_line);
-    //     println!("Furthest distance {:?}", farthest_distance);
-    //     return vec![first, last];
-    // }
 
     if farthest_distance < T::zero()
         || farthest_distance > eps
@@ -85,15 +74,15 @@ where
         })
 }
 
-pub trait SimplifyRDPPreserve<T, Epsilon = T> {
-    fn simplify_rdp_preserve(&self, epsilon: Epsilon) -> Self;
+pub trait SimplifyRDP<T, Epsilon = T> {
+    fn simplify_rdp(&self, epsilon: Epsilon) -> Self;
 }
 
-impl<T> SimplifyRDPPreserve<T> for LineString<T>
+impl<T> SimplifyRDP<T> for LineString<T>
 where
     T: GeoFloat + RTreeNum + Send + Sync,
 {
-    fn simplify_rdp_preserve(&self, epsilon: T) -> Self {
+    fn simplify_rdp(&self, epsilon: T) -> Self {
         let tree: RTree<CachedEnvelope<_>> =
             RTree::bulk_load(self.lines().map(CachedEnvelope::new).collect::<Vec<_>>());
 
@@ -101,44 +90,17 @@ where
     }
 }
 
-impl<T> SimplifyRDPPreserve<T> for Polygon<T>
+impl<T> SimplifyRDP<T> for Polygon<T>
 where
     T: GeoFloat + RTreeNum + Send + Sync,
 {
-    fn simplify_rdp_preserve(&self, epsilon: T) -> Self {
-        // Divide into segments between convex hull vertices
-        let hull_indices = melkman_indices(self);
-        let coord_vec = &self.exterior().0;
-
-        let segments = hull_indices
-            .windows(2)
-            .map(|window| {
-                let &[start, end] = window else {
-                    unreachable!()
-                };
-                if start <= end {
-                    LineString::new(coord_vec[start..=end].to_vec())
-                } else {
-                    LineString::new([&coord_vec[start..], &coord_vec[1..=end]].concat())
-                }
-            })
-            .collect::<Vec<_>>();
-
-        // Reduce line segments and merge
-        let reduced_segments = segments
+    fn simplify_rdp(&self, epsilon: T) -> Self {
+        let reduced_segments = self
+            .hull_segments()
             .into_par_iter() // parallelize with rayon
-            .map(|ls| ls.simplify_rdp_preserve(epsilon))
+            .map(|ls| ls.simplify_rdp(epsilon))
             .collect::<Vec<_>>();
 
-        let exterior = reduced_segments
-            .into_iter()
-            .map(|ls| ls.into_inner())
-            .reduce(|mut acc, new| {
-                acc.extend(new.into_iter().skip(1));
-                acc
-            })
-            .unwrap();
-
-        Polygon::new(LineString::new(exterior), vec![])
+        Polygon::from_segments(reduced_segments)
     }
 }
