@@ -42,11 +42,11 @@ impl<T: CoordFloat> PartialEq for VWScore<T> {
     }
 }
 
-fn visvalingam_preserve<T>(orig: &LineString<T>, epsilon: T) -> Vec<Coord<T>>
+fn visvalingam_preserve<T>(orig: &LineString<T>, eps: T) -> Vec<Coord<T>>
 where
     T: GeoFloat + RTreeNum,
 {
-    if orig.0.len() < 3 || epsilon <= T::zero() {
+    if orig.0.len() < 3 || eps <= T::zero() {
         return orig.0.to_vec();
     }
 
@@ -78,7 +78,7 @@ where
         .collect::<BinaryHeap<VWScore<T>>>();
 
     while let Some(smallest) = pq.pop() {
-        if smallest.score > epsilon {
+        if smallest.score > eps {
             break;
         }
 
@@ -173,15 +173,15 @@ fn recompute_triangles<T: CoordFloat>(
 }
 
 pub trait SimplifyVW<T, Epsilon = T> {
-    fn simplify_vw(&self, epsilon: Epsilon) -> Self;
+    fn simplify_vw(&self, eps: Epsilon) -> Self;
 }
 
 impl<T> SimplifyVW<T> for LineString<T>
 where
     T: GeoFloat + RTreeNum,
 {
-    fn simplify_vw(&self, epsilon: T) -> Self {
-        LineString::from(visvalingam_preserve(self, epsilon))
+    fn simplify_vw(&self, eps: T) -> Self {
+        LineString::from(visvalingam_preserve(self, eps))
     }
 }
 
@@ -189,11 +189,11 @@ impl<T> SimplifyVW<T> for Polygon<T>
 where
     T: GeoFloat + RTreeNum + Send + Sync,
 {
-    fn simplify_vw(&self, epsilon: T) -> Self {
+    fn simplify_vw(&self, eps: T) -> Self {
         let reduced_segments = self
             .hull_segments()
             .into_par_iter() // parallelize with rayon
-            .map(|ls| ls.simplify_vw(epsilon))
+            .map(|ls| ls.simplify_vw(eps))
             .collect::<Vec<_>>();
 
         Polygon::from_segments(reduced_segments)

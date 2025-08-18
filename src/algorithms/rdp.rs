@@ -75,18 +75,18 @@ where
 }
 
 pub trait SimplifyRDP<T, Epsilon = T> {
-    fn simplify_rdp(&self, epsilon: Epsilon) -> Self;
+    fn simplify_rdp(&self, eps: Epsilon) -> Self;
 }
 
 impl<T> SimplifyRDP<T> for LineString<T>
 where
     T: GeoFloat + RTreeNum + Send + Sync,
 {
-    fn simplify_rdp(&self, epsilon: T) -> Self {
+    fn simplify_rdp(&self, eps: T) -> Self {
         let tree: RTree<CachedEnvelope<_>> =
             RTree::bulk_load(self.lines().map(CachedEnvelope::new).collect::<Vec<_>>());
 
-        LineString::new(rdp_preserve(&self.0, epsilon, &tree))
+        LineString::new(rdp_preserve(&self.0, eps, &tree))
     }
 }
 
@@ -94,11 +94,11 @@ impl<T> SimplifyRDP<T> for Polygon<T>
 where
     T: GeoFloat + RTreeNum + Send + Sync,
 {
-    fn simplify_rdp(&self, epsilon: T) -> Self {
+    fn simplify_rdp(&self, eps: T) -> Self {
         let reduced_segments = self
             .hull_segments()
             .into_par_iter() // parallelize with rayon
-            .map(|ls| ls.simplify_rdp(epsilon))
+            .map(|ls| ls.simplify_rdp(eps))
             .collect::<Vec<_>>();
 
         Polygon::from_segments(reduced_segments)

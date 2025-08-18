@@ -8,36 +8,36 @@ mod algorithms;
 mod extensions;
 
 #[pyfunction]
-fn reduce_polygon_vw(orig: Vec<[f64; 2]>, epsilon: f64) -> PyResult<Vec<(f64, f64)>> {
+fn reduce_polygon_vw(orig: Vec<[f64; 2]>, eps: f64) -> PyResult<Vec<(f64, f64)>> {
     // Instantiate a Polygon from a Vec of coordinates
     let polygon = Polygon::new(orig.into(), vec![]);
 
     // Reduce and extract coordinates
-    let (exterior, _) = polygon.simplify_vw(epsilon).into_inner();
+    let (exterior, _) = polygon.simplify_vw(eps).into_inner();
     let coords = exterior.into_iter().map(|c| c.x_y()).collect::<Vec<_>>();
 
     Ok(coords)
 }
 
 #[pyfunction]
-fn reduce_polygon_char(orig: Vec<[f64; 2]>, epsilon: f64) -> PyResult<Vec<(f64, f64)>> {
+fn reduce_polygon_char(orig: Vec<[f64; 2]>, eps: f64) -> PyResult<Vec<(f64, f64)>> {
     // Instantiate a Polygon from a Vec of coordinates
     let polygon = Polygon::new(orig.into(), vec![]);
 
     // Reduce and extract coordinates
-    let (exterior, _) = polygon.simplify_charshape(epsilon).into_inner();
+    let (exterior, _) = polygon.simplify_charshape(eps).into_inner();
     let coords = exterior.into_iter().map(|c| c.x_y()).collect::<Vec<_>>();
 
     Ok(coords)
 }
 
 #[pyfunction]
-fn reduce_polygon_rdp(orig: Vec<[f64; 2]>, epsilon: f64) -> PyResult<Vec<(f64, f64)>> {
+fn reduce_polygon_rdp(orig: Vec<[f64; 2]>, eps: f64) -> PyResult<Vec<(f64, f64)>> {
     // Instantiate a Polygon from a Vec of coordinates
     let polygon = Polygon::new(orig.into(), vec![]);
 
     // Reduce and extract coordinates
-    let (exterior, _) = polygon.simplify_rdp(epsilon).into_inner();
+    let (exterior, _) = polygon.simplify_rdp(eps).into_inner();
     let coords = exterior.into_iter().map(|c| c.x_y()).collect::<Vec<_>>();
 
     Ok(coords)

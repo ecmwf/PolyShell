@@ -10,4 +10,4 @@ from pytest_cases import fixture, parametrize_with_cases  # type: ignore
 def simplified(
     polygon: list[tuple[float, float]], method: Callable
 ) -> list[tuple[float, float]]:
-    return method(polygon, epsilon=1e-6)
+    return method(polygon, eps=1e-6)
