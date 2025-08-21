@@ -68,7 +68,7 @@ impl<T> PartialOrd for BoundaryNode<'_, T> {
     }
 }
 
-fn characteristic_shape<T>(orig: &Polygon<T>, eps: T) -> Polygon<T>
+fn characteristic_shape<T>(orig: &Polygon<T>, eps: T, max_len: usize) -> Polygon<T>
 where
     T: GeoFloat + SpadeNum,
 {
@@ -93,7 +93,7 @@ where
         .collect::<BinaryHeap<_>>();
 
     while let Some(largest) = pq.pop() {
-        if largest.score < eps {
+        if largest.score < eps || boundary_nodes.len() >= max_len {
             break;
         }
 
@@ -142,14 +142,14 @@ fn recompute_boundary<'a, T>(
 }
 
 pub trait SimplifyCharshape<T, Epsilon = T> {
-    fn simplify_charshape(&self, eps: Epsilon) -> Self;
+    fn simplify_charshape(&self, eps: Epsilon, len: usize) -> Self;
 }
 
 impl<T> SimplifyCharshape<T> for Polygon<T>
 where
     T: GeoFloat + SpadeNum,
 {
-    fn simplify_charshape(&self, eps: T) -> Self {
-        characteristic_shape(self, eps)
+    fn simplify_charshape(&self, eps: T, len: usize) -> Self {
+        characteristic_shape(self, eps, len)
     }
 }
