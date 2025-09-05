@@ -4,6 +4,8 @@ import heapq
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
+from polyshell.reducer.utils import Logger
+from polyshell.cli.kneepoint_detect import AdaptiveEpsilon
 
 from rtree.index import Rtree
 
@@ -19,7 +21,6 @@ from polyshell.geometry import (
 from .loss_funcs import LossFunction
 
 ID = 0  # ID for rtree
-
 
 @dataclass(order=True)
 class VWScore:
@@ -40,9 +41,9 @@ def data_stream(geoms: Iterable[Geometry]):
         yield ID, item.bbox(), item
 
 
-def worker_wraps(epsilon: float, loss_fn: LossFunction):
+def worker_wraps(epsilon: float, loss_fn: LossFunction, logger : Logger, adaptive : bool):
     def worker(ls: LineString) -> LineString:
-        return vw_preserve(ls, epsilon, loss_fn)
+        return vw_preserve(ls, epsilon, loss_fn, logger, adaptive)
 
     return worker
 
@@ -51,7 +52,9 @@ def reduce_polygon_vw(
     polygon: Polygon,
     epsilon: float,
     loss_fn: LossFunction,
-    max_workers: Optional[int] = None,
+    logger : Logger,
+    adaptive:bool,
+    max_workers: Optional[int],
 ) -> Polygon:
     """Reduce a polygon while retaining coverage."""
     vertices = melkman_indices(polygon)
@@ -60,13 +63,13 @@ def reduce_polygon_vw(
     ]
 
     with ThreadPoolExecutor(max_workers) as tpe:
-        reduced_segments = tpe.map(worker_wraps(epsilon, loss_fn), segments)
+        reduced_segments = tpe.map(worker_wraps(epsilon, loss_fn, logger, adaptive), segments)
 
     return Polygon.merge(reduced_segments)
 
 
 def vw_preserve(
-    polygon_points: LineString, epsilon: float, loss_fn: LossFunction
+    polygon_points: LineString, epsilon: float, loss_fn: LossFunction, logger : Logger, adaptive : bool
 ) -> LineString:
     """Visvalingam-Whyatt line reduction algorithm adapted to prevent crossings."""
     if len(polygon_points) < 3 or epsilon <= 0:
@@ -95,6 +98,9 @@ def vw_preserve(
         smallest = heapq.heappop(pq)
 
         if smallest.score > epsilon:
+            break
+
+        if logger.query(smallest.score) and adaptive:
             break
 
         # Check if the score is invalidated
@@ -134,7 +140,7 @@ def vw_preserve(
 
         # Update loss
         loss += smallest.score
-
+        logger.update(smallest.score)
     # Filter out any deleted points
     return LineString(
         [point for point, adj in zip(polygon_points, adjacent) if adj != (0, 0)]
