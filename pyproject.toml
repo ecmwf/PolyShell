@@ -10,6 +10,11 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
+authors = [
+    { name = "Niall Oswald", email = "niall.oswald20@imperial.ac.uk" },
+    { name = "Kenneth Martin", email = "k.martin24@imperial.ac.uk" },
+    { name = "Jo Wayne Tan", email = "jo.tan17@imperial.ac.uk" },
+]
 dynamic = ["version"]
 dependencies = [
     "pydantic>=2.10.6",
