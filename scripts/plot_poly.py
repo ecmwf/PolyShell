@@ -14,7 +14,10 @@ if __name__ == "__main__":
     with pyinstrument.profile():
         reduced_polygon = reduce_polygon(original_polygon, "epsilon", 1e-4, method="vw")
         # reduced_polygon = reduce_polygon(original_polygon, "epsilon", 1e-2, method="rdp")
-        # reduced_polygon = reduce_polygon(original_polygon, "epsilon", 4.28e-2, method="char")
+        # reduced_polygon = reduce_polygon(original_polygon, "epsilon", 4.28e-2, method="charshape")
+
+        # reduced_polygon = reduce_polygon(original_polygon, "length", 2000, method="vw")
+        # reduced_polygon = reduce_polygon(original_polygon, "length", 2000, method="charshape")
 
     # Report reduction
     print(f"Reduction rate: {len(reduced_polygon)} / {len(original_polygon)}")
