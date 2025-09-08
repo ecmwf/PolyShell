@@ -16,9 +16,7 @@ authors = [
     { name = "Jo Wayne Tan", email = "jo.tan17@imperial.ac.uk" },
 ]
 dynamic = ["version"]
-dependencies = [
-    "pydantic>=2.10.6",
-]
+dependencies = []
 
 [dependency-groups]
 dev = [
