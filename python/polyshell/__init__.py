@@ -1,8 +1,6 @@
 from enum import Enum
 from typing import Literal, overload
 
-from pydantic import validate_call
-
 from polyshell._polyshell import *
 
 Polygon = list[tuple[float, float]]
@@ -66,7 +64,6 @@ def reduce_polygon(
             )
 
 
-@validate_call
 def reduce_polygon_eps(
     polygon: Polygon, epsilon: float, method: ReductionMethod
 ) -> Polygon:
@@ -77,9 +74,12 @@ def reduce_polygon_eps(
             return reduce_polygon_rdp(polygon, epsilon)
         case ReductionMethod.VW:
             return reduce_polygon_vw(polygon, epsilon, 0)
+        case _:
+            raise ValueError(
+                f"Unknown reduction method. Must be one of {[e.value for e in ReductionMethod]}"
+            )
 
 
-@validate_call
 def reduce_polygon_len(
     polygon: Polygon,
     length: int,
@@ -89,12 +89,15 @@ def reduce_polygon_len(
         case ReductionMethod.CHARSHAPE:
             return reduce_polygon_char(polygon, 0.0, length)  # maximum length
         case ReductionMethod.RDP:
-            raise NotImplementedError
+            raise NotImplementedError("Fixed length is not implemented for RDP")
         case ReductionMethod.VW:
             return reduce_polygon_vw(polygon, float("inf"), length)  # minimum length
+        case _:
+            raise ValueError(
+                f"Unknown reduction method. Must be one of {[e.value for e in ReductionMethod]}"
+            )
 
 
-@validate_call
 def reduce_polygon_auto(polygon: Polygon, method: ReductionMethod) -> Polygon:
     match method:
         case ReductionMethod.CHARSHAPE:
