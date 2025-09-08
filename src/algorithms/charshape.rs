@@ -150,6 +150,6 @@ where
     T: GeoFloat + SpadeNum,
 {
     fn simplify_charshape(&self, eps: T, len: usize) -> Self {
-        characteristic_shape(self, eps, len)
+        characteristic_shape(self, eps, len - 1)
     }
 }
