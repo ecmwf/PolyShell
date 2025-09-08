@@ -72,11 +72,11 @@ def reduce_polygon_eps(
 ) -> Polygon:
     match method:
         case ReductionMethod.CHARSHAPE:
-            return reduce_polygon_char(polygon, epsilon, len=len(polygon))
+            return reduce_polygon_char(polygon, epsilon, len(polygon))
         case ReductionMethod.RDP:
             return reduce_polygon_rdp(polygon, epsilon)
         case ReductionMethod.VW:
-            return reduce_polygon_vw(polygon, epsilon)
+            return reduce_polygon_vw(polygon, epsilon, 0)
 
 
 @validate_call
@@ -87,11 +87,11 @@ def reduce_polygon_len(
 ) -> Polygon:
     match method:
         case ReductionMethod.CHARSHAPE:
-            return reduce_polygon_char(polygon, 0.0, length)
+            return reduce_polygon_char(polygon, 0.0, length)  # maximum length
         case ReductionMethod.RDP:
             raise NotImplementedError
         case ReductionMethod.VW:
-            raise NotImplementedError
+            return reduce_polygon_vw(polygon, float("inf"), length)  # minimum length
 
 
 @validate_call

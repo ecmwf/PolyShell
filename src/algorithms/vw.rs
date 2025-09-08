@@ -42,15 +42,16 @@ impl<T: CoordFloat> PartialEq for VWScore<T> {
     }
 }
 
-fn visvalingam_preserve<T>(orig: &LineString<T>, eps: T) -> Vec<Coord<T>>
+fn visvalingam_preserve<T>(orig: &LineString<T>, eps: T, min_len: usize) -> Vec<Coord<T>>
 where
     T: GeoFloat + RTreeNum,
 {
-    if orig.0.len() < 3 || eps <= T::zero() {
+    let max = orig.0.len();
+    if max < 2 || max <= min_len || eps <= T::zero() {
         return orig.0.to_vec();
     }
 
-    let max = orig.0.len();
+    let mut len = orig.0.len();
 
     let tree: RTree<CachedEnvelope<_>> =
         RTree::bulk_load(orig.lines().map(CachedEnvelope::new).collect::<Vec<_>>());
@@ -96,6 +97,11 @@ where
         adjacent[left as usize] = (ll, right);
         adjacent[right as usize] = (left, rr);
         adjacent[smallest.current] = (0, 0);
+        len -= 1;
+
+        if len == min_len {
+            break;
+        }
 
         recompute_triangles(orig, &mut pq, ll, left, right, rr, max);
     }
@@ -173,15 +179,15 @@ fn recompute_triangles<T: CoordFloat>(
 }
 
 pub trait SimplifyVW<T, Epsilon = T> {
-    fn simplify_vw(&self, eps: Epsilon) -> Self;
+    fn simplify_vw(&self, eps: Epsilon, len: usize) -> Self;
 }
 
 impl<T> SimplifyVW<T> for LineString<T>
 where
     T: GeoFloat + RTreeNum,
 {
-    fn simplify_vw(&self, eps: T) -> Self {
-        LineString::from(visvalingam_preserve(self, eps))
+    fn simplify_vw(&self, eps: T, len: usize) -> Self {
+        LineString::from(visvalingam_preserve(self, eps, len))
     }
 }
 
@@ -189,13 +195,21 @@ impl<T> SimplifyVW<T> for Polygon<T>
 where
     T: GeoFloat + RTreeNum + Send + Sync,
 {
-    fn simplify_vw(&self, eps: T) -> Self {
-        let reduced_segments = self
-            .hull_segments()
-            .into_par_iter() // parallelize with rayon
-            .map(|ls| ls.simplify_vw(eps))
-            .collect::<Vec<_>>();
+    fn simplify_vw(&self, eps: T, len: usize) -> Self {
+        let segments = self.hull_segments();
 
-        Polygon::from_segments(reduced_segments)
+        if len > segments.len() {
+            // To reduce to a fixed length the algorithm must be synchronized
+            let ls = LineString::from_segments(segments);
+            let reduced_ls = ls.simplify_vw(eps, len);
+            Polygon::new(reduced_ls, vec![])
+        } else {
+            // If a fixed length is not desired, segments can be reduced in parallel
+            let reduced_segments = segments
+                .into_par_iter()
+                .map(|ls| ls.simplify_vw(eps, 2))
+                .collect::<Vec<_>>();
+            Polygon::from_segments(reduced_segments)
+        }
     }
 }

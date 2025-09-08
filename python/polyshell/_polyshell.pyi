@@ -9,6 +9,6 @@ def reduce_polygon_rdp(
     """Reduce a polygon while retaining coverage."""
 
 def reduce_polygon_vw(
-    polygon: list[tuple[float, float]], eps: float
+    polygon: list[tuple[float, float]], eps: float, len: int
 ) -> list[tuple[float, float]]:
     """Reduce a polygon while retaining coverage."""
