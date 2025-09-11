@@ -42,8 +42,8 @@ except ImportError:
     ShapelyPolygon = NullClass
 
 try:
-    from numpy.typing import NDArray
     from numpy import ndarray
+    from numpy.typing import NDArray
 
     Polygon = Polygon | NDArray[float]
 except ImportError:
