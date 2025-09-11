@@ -1,14 +1,18 @@
+from collections.abc import Sequence
+
+__all__ = ["reduce_polygon_char", "reduce_polygon_rdp", "reduce_polygon_rdp"]
+
+SupportsIntoVec = Sequence[tuple[float, float]]
+
 def reduce_polygon_char(
-    polygon: list[tuple[float, float]], eps: float, len: int
-) -> list[tuple[float, float]]:
+    polygon: SupportsIntoVec, eps: float, len: int
+) -> list[list[float]]:
     """Reduce a polygon while retaining coverage."""
 
-def reduce_polygon_rdp(
-    polygon: list[tuple[float, float]], eps: float
-) -> list[tuple[float, float]]:
+def reduce_polygon_rdp(polygon: SupportsIntoVec, eps: float) -> list[list[float]]:
     """Reduce a polygon while retaining coverage."""
 
 def reduce_polygon_vw(
-    polygon: list[tuple[float, float]], eps: float, len: int
-) -> list[tuple[float, float]]:
+    polygon: SupportsIntoVec, eps: float, len: int
+) -> list[list[float]]:
     """Reduce a polygon while retaining coverage."""

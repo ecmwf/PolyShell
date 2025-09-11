@@ -1,9 +1,24 @@
+from collections.abc import Sequence
 from enum import Enum
 from typing import Literal, overload
 
 from polyshell._polyshell import *
 
-Polygon = list[tuple[float, float]]
+__all__ = [
+    "ReductionMethod",
+    "ReductionMode",
+    "reduce_polygon",
+    "reduce_polygon_eps",
+    "reduce_polygon_len",
+    "reduce_polygon_auto",
+]
+
+
+Polygon = Sequence[tuple[float, float]]
+
+
+class NullClass:
+    pass
 
 
 class ReductionMethod(str, Enum):
@@ -18,13 +33,45 @@ class ReductionMode(str, Enum):
     AUTO = "auto"
 
 
+# Feature gates
+try:
+    from shapely import Polygon as ShapelyPolygon
+
+    Polygon = Polygon | ShapelyPolygon
+except ImportError:
+    ShapelyPolygon = NullClass
+
+try:
+    from numpy.typing import NDArray
+    from numpy import ndarray
+
+    Polygon = Polygon | NDArray[float]
+except ImportError:
+    ndarray = NullClass
+
+
+def into_polygon(obj: any) -> Sequence[tuple[float, float]]:
+    """Cast a polygon object into a supported type."""
+    match obj:
+        case [*_] as seq:
+            return seq
+        case ndarray() as arr:
+            return arr
+        case ShapelyPolygon(exterior=exterior):
+            return exterior.coords
+        case _:
+            raise TypeError(
+                f"{type(obj)} cannot be interpreted as Polygon object {ShapelyPolygon}"
+            )
+
+
 @overload
 def reduce_polygon(
     polygon: Polygon,
     mode: Literal[ReductionMode.EPSILON],
     epsilon: float,
     method: ReductionMethod,
-) -> Polygon:
+) -> list[list[float]]:
     pass
 
 
@@ -34,14 +81,14 @@ def reduce_polygon(
     mode: Literal[ReductionMode.LENGTH],
     length: int,
     method: ReductionMethod,
-) -> Polygon:
+) -> list[list[float]]:
     pass
 
 
 @overload
 def reduce_polygon(
     polygon: Polygon, mode: Literal[ReductionMode.AUTO], method: ReductionMethod
-) -> Polygon:
+) -> list[list[float]]:
     pass
 
 
@@ -50,7 +97,7 @@ def reduce_polygon(
     mode: ReductionMode,
     *args,
     **kwargs,
-) -> Polygon:
+) -> list[list[float]]:
     match mode:
         case ReductionMode.EPSILON:
             return reduce_polygon_eps(polygon, *args, **kwargs)
@@ -66,7 +113,8 @@ def reduce_polygon(
 
 def reduce_polygon_eps(
     polygon: Polygon, epsilon: float, method: ReductionMethod
-) -> Polygon:
+) -> list[list[float]]:
+    polygon = into_polygon(polygon)
     match method:
         case ReductionMethod.CHARSHAPE:
             return reduce_polygon_char(polygon, epsilon, len(polygon))
@@ -84,7 +132,8 @@ def reduce_polygon_len(
     polygon: Polygon,
     length: int,
     method: ReductionMethod,
-) -> Polygon:
+) -> list[list[float]]:
+    polygon = into_polygon(polygon)
     match method:
         case ReductionMethod.CHARSHAPE:
             return reduce_polygon_char(polygon, 0.0, length)  # maximum length
@@ -98,7 +147,8 @@ def reduce_polygon_len(
             )
 
 
-def reduce_polygon_auto(polygon: Polygon, method: ReductionMethod) -> Polygon:
+def reduce_polygon_auto(polygon: Polygon, method: ReductionMethod) -> list[list[float]]:
+    polygon = into_polygon(polygon)
     match method:
         case ReductionMethod.CHARSHAPE:
             raise NotImplementedError
@@ -106,3 +156,7 @@ def reduce_polygon_auto(polygon: Polygon, method: ReductionMethod) -> Polygon:
             raise NotImplementedError
         case ReductionMethod.VW:
             raise NotImplementedError
+        case _:
+            raise ValueError(
+                f"Unknown reduction method. Must be one of {[e.value for e in ReductionMethod]}"
+            )
