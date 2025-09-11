@@ -1,6 +1,12 @@
 """Cases for end-to-end testing of reduce_polygon."""
 
 import pickle
+from collections.abc import Sequence
+
+import numpy as np
+from numpy.typing import NDArray
+from shapely import Polygon as ShapelyPolygon
+from shapely.coords import CoordinateSequence
 
 
 class CaseLarge:
@@ -60,3 +66,100 @@ class CaseSmall:
                 (1.0, 0.0),
                 (0.0, 0.0),
             ]
+
+    class CaseTypes:
+        """Minimal polygons of various types."""
+
+        def case_tuple_tuple(self) -> tuple[tuple[float, float], ...]:
+            """A polygon as a tuple of tuples."""
+            return (
+                (0.0, 0.0),
+                (0.0, 1.0),
+                (0.5, 0.5),
+                (1.0, 1.0),
+                (1.0, 0.0),
+                (0.0, 0.0),
+            )
+
+        def case_tuple_list(self) -> tuple[list[float], ...]:
+            """A polygon as a tuple of lists."""
+            return (
+                [0.0, 0.0],
+                [0.0, 1.0],
+                [0.5, 0.5],
+                [1.0, 1.0],
+                [1.0, 0.0],
+                [0.0, 0.0],
+            )
+
+        def case_list_tuple(self) -> list[tuple[float, float]]:
+            """A polygon as a list of tuples."""
+            return [
+                (0.0, 0.0),
+                (0.0, 1.0),
+                (0.5, 0.5),
+                (1.0, 1.0),
+                (1.0, 0.0),
+                (0.0, 0.0),
+            ]
+
+        def case_list_list(self) -> list[list[float]]:
+            """A polygon as a list of lists."""
+            return [
+                [0.0, 0.0],
+                [0.0, 1.0],
+                [0.5, 0.5],
+                [1.0, 1.0],
+                [1.0, 0.0],
+                [0.0, 0.0],
+            ]
+
+        def case_array(self) -> NDArray[np.floating]:
+            """A polygon as a numpy array."""
+            return np.array(
+                [
+                    [0.0, 0.0],
+                    [0.0, 1.0],
+                    [0.5, 0.5],
+                    [1.0, 1.0],
+                    [1.0, 0.0],
+                    [0.0, 0.0],
+                ]
+            )
+
+        def case_shapely_coord_sequence(self) -> CoordinateSequence:
+            """A polygon as a shapely CoordinateSequence."""
+            return ShapelyPolygon(
+                [
+                    [0.0, 0.0],
+                    [0.0, 1.0],
+                    [0.5, 0.5],
+                    [1.0, 1.0],
+                    [1.0, 0.0],
+                    [0.0, 0.0],
+                ]
+            ).exterior.coords
+
+        def case_sequence(self) -> Sequence[tuple[float, float]]:
+            """A polygon as a custom type."""
+
+            class CoordSequence(Sequence):
+                def __init__(self, coords: list[tuple[float, float]]):
+                    self.coords = coords
+
+                def __len__(self) -> int:
+                    return len(self.coords)
+
+                def __getitem__(self, index: int) -> tuple[float, float]:
+                    return self.coords[index]
+
+            return CoordSequence(
+                [
+                    (0.0, 0.0),
+                    (0.0, 1.0),
+                    (0.5, 0.5),
+                    (1.0, 1.0),
+                    (1.0, 0.0),
+                    (0.0, 0.0),
+                ]
+            )

@@ -1085,6 +1085,8 @@ scripts = [
 ]
 testing = [
     { name = "maturin" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.3.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pyinstrument" },
     { name = "pytest" },
     { name = "pytest-cases" },
@@ -1102,6 +1104,7 @@ docs = [{ name = "mkdocs-material", specifier = ">=9.6.15" }]
 scripts = [{ name = "matplotlib", specifier = ">=3.7.5" }]
 testing = [
     { name = "maturin", specifier = ">=1.9.3" },
+    { name = "numpy", specifier = ">=2.2.6" },
     { name = "pyinstrument", specifier = ">=5.0.3" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-cases", specifier = ">=3.9.1" },
