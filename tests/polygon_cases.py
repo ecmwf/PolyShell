@@ -127,8 +127,8 @@ class CaseSmall:
                 ]
             )
 
-        def case_shapely_coord_sequence(self) -> CoordinateSequence:
-            """A polygon as a shapely CoordinateSequence."""
+        def case_shapely(self) -> ShapelyPolygon:
+            """A shapely Polygon."""
             return ShapelyPolygon(
                 [
                     [0.0, 0.0],
@@ -138,7 +138,7 @@ class CaseSmall:
                     [1.0, 0.0],
                     [0.0, 0.0],
                 ]
-            ).exterior.coords
+            )
 
         def case_sequence(self) -> Sequence[tuple[float, float]]:
             """A polygon as a custom type."""
