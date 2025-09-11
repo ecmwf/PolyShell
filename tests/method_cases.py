@@ -1,15 +1,13 @@
-from typing import Callable
-
-from polyshell import reduce_polygon_char, reduce_polygon_rdp, reduce_polygon_vw
+from polyshell import ReductionMethod
 
 
-def case_char() -> Callable:
-    return reduce_polygon_char
+def case_char() -> ReductionMethod:
+    return ReductionMethod.CHARSHAPE
 
 
-def case_rdp() -> Callable:
-    return reduce_polygon_rdp
+def case_rdp() -> ReductionMethod:
+    return ReductionMethod.RDP
 
 
-def case_vw() -> Callable:
-    return reduce_polygon_vw
+def case_vw() -> ReductionMethod:
+    return ReductionMethod.VW
