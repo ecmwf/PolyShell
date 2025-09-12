@@ -1,0 +1,22 @@
+[project]
+name = "benchmark"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Niall Oswald", email = "niall.oswald@hotmail.co.uk" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.10.5",
+    "seaborn>=0.13.2",
+    "shapely>=2.1.1",
+    "simplification>=0.7.13",
+]
+
+[project.scripts]
+benchmark = "benchmark:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

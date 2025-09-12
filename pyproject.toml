@@ -48,5 +48,10 @@ cache-keys = [{ file = "pyproject.toml" }, { file = "rust/Cargo.toml" }, { file 
 # Uncomment to build rust code in development mode
 # config-settings = { build-args = '--profile=dev' }
 
+[tool.uv.workspace]
+members = [
+    "scripts/benchmark",
+]
+
 [tool.pytest.ini_options]
 testpaths = "tests"
