@@ -5,6 +5,7 @@ theme:
 
   features:
     - navigation.path
+    - navigation.footer
     - navigation.instant
     - navigation.instant.prefetch
     - navigation.instant.progress
@@ -41,6 +42,8 @@ theme:
         name: Switch to system preference
 
 markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -65,6 +68,13 @@ markdown_extensions:
 
 plugins:
   - search
+extra_javascript:
+  - javascripts/katex.js
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
+
+extra_css:
+  - https://unpkg.com/katex@0/dist/katex.min.css
 
 repo_url: https://github.com/ECMWFCode4Earth/PolyShell
 repo_name: polyshell
