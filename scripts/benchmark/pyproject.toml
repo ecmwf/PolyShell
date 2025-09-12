@@ -1,7 +1,7 @@
 [project]
 name = "benchmark"
 version = "0.1.0"
-description = "Add your description here"
+description = "Benchmarks for PolyShell."
 readme = "README.md"
 authors = [
     { name = "Niall Oswald", email = "niall.oswald@hotmail.co.uk" }
