@@ -9,48 +9,52 @@ from benchmark import BENCHMARKS
 
 LIGHT_MODE = True
 
-FONT_COLOR = "dimgrey" if LIGHT_MODE else "darkgray"
 
-custom_params = {
-    "text.color": FONT_COLOR,
-    "axes.labelcolor": FONT_COLOR,
-    "xtick.labelcolor": FONT_COLOR,
-    "ytick.labelcolor": FONT_COLOR,
-    "patch.edgecolor": "none",
-}
-sns.set_theme(style="whitegrid", font_scale=1.5, rc=custom_params)
+def set_theme(light_mode: bool):
+    FONT_COLOR = "dimgrey" if light_mode else "darkgray"
+
+    custom_params = {
+        "text.color": FONT_COLOR,
+        "axes.labelcolor": FONT_COLOR,
+        "xtick.labelcolor": FONT_COLOR,
+        "ytick.labelcolor": FONT_COLOR,
+        "patch.edgecolor": "none",
+    }
+    sns.set_theme(style="whitegrid", font_scale=1.5, rc=custom_params)
 
 
 def argsort(seq):
     return sorted(range(len(seq)), key=seq.__getitem__)
 
 
-def plot_bench(results: list[tuple[float, str]], filename: str) -> None:
+def plot_bench(results: list[tuple[float, str]]) -> None:
     times, labels = zip(*results)
     sorted_index = argsort(times)
 
     times = [times[i] for i in sorted_index]
     labels = [labels[i] for i in sorted_index]
 
-    fig, ax = plt.subplots(figsize=(8, 2))
+    for light_mode in [True, False]:
+        set_theme(light_mode)
 
-    sns.barplot(x=times, y=labels, ax=ax)
-    ax.bar_label(ax.containers[0], [f" {1000 * t:.0f}ms" for t in times], fontsize=16)
+        fig, ax = plt.subplots(figsize=(8, 2))
+        sns.barplot(x=times, y=labels, ax=ax)
+        ax.bar_label(ax.containers[0], [f" {1000 * t:.0f}ms" for t in times], fontsize=16)
 
-    for patch in ax.patches:
-        current_width = patch.get_height()
-        diff = current_width - 0.7
+        for patch in ax.patches:
+            current_width = patch.get_height()
+            diff = current_width - 0.7
 
-        patch.set_height(0.7)
-        patch.set_y(patch.get_y() + diff * 0.5)
+            patch.set_height(0.7)
+            patch.set_y(patch.get_y() + diff * 0.5)
 
-    ax.set_xticks([0.0, 0.05, 0.10, 0.15])
-    ax.xaxis.set_major_formatter(FuncFormatter(lambda t, p: f"{1000 * t:.0f}ms"))
+        ax.set_xticks([0.0, 0.05, 0.10, 0.15])
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda t, p: f"{1000 * t:.0f}ms"))
 
-    sns.despine(left=True, bottom=True)
-    plt.tight_layout()
-    plt.savefig(f"{filename}.svg", transparent=True)
-    plt.show()
+        sns.despine(left=True, bottom=True)
+        plt.tight_layout()
+        plt.savefig(f"Benchmark-{'Light' if light_mode else 'Dark'}.svg", transparent=True)
+        plt.show()
 
 
 def eps_search(
@@ -97,5 +101,5 @@ if __name__ == "__main__":
     bench = [(method, eps, label) for (method, label), eps in zip(BENCHMARKS, eps_vals)]
     assert verify_bench(poly, bench, target)
 
-    results = [(benchmark(poly, method, eps), label) for method, eps, label in bench]
-    plot_bench(results, filename="bench")
+    results = [(benchmark(poly, method, eps, count=100), label) for method, eps, label in bench]
+    plot_bench(results)
