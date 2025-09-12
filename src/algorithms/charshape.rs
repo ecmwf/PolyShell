@@ -1,7 +1,7 @@
 use geo::{Coord, GeoFloat, LineString, Polygon};
 use hashbrown::HashSet;
 use spade::handles::{DirectedEdgeHandle, VertexHandle};
-use spade::{DelaunayTriangulation, Point2, SpadeNum, Triangulation};
+use spade::{CdtEdge, ConstrainedDelaunayTriangulation, Point2, SpadeNum, Triangulation};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::hash::Hash;
@@ -12,7 +12,7 @@ where
     T: SpadeNum,
 {
     score: T,
-    edge: DirectedEdgeHandle<'a, Point2<T>, (), (), ()>,
+    edge: DirectedEdgeHandle<'a, Point2<T>, (), CdtEdge<()>, ()>,
 }
 
 // These impls give us a max-heap
@@ -37,7 +37,7 @@ impl<T: SpadeNum> PartialEq for CharScore<'_, T> {
 }
 
 #[derive(Debug)]
-struct BoundaryNode<'a, T>(VertexHandle<'a, Point2<T>>);
+struct BoundaryNode<'a, T>(VertexHandle<'a, Point2<T>, (), CdtEdge<()>>);
 
 impl<T> PartialEq for BoundaryNode<'_, T> {
     fn eq(&self, other: &BoundaryNode<T>) -> bool {
@@ -72,13 +72,29 @@ fn characteristic_shape<T>(orig: &Polygon<T>, eps: T, max_len: usize) -> Polygon
 where
     T: GeoFloat + SpadeNum,
 {
+    // Number of unique vertices
+    let orig_len = orig.exterior().0.len() - 1;
+
     // Construct Delaunay triangulation
     let vertices = orig
         .exterior()
         .coords()
+        .take(orig_len) // duplicate points are removed
         .map(|c| Point2::new(c.x, c.y))
         .collect::<Vec<_>>();
-    let tri = DelaunayTriangulation::<Point2<T>>::bulk_load_stable(vertices).unwrap();
+
+    let edges = (0..orig_len - 1)
+        .map(|i| {
+            if i == 0 {
+                [vertices.len() - 1, i]
+            } else {
+                [i, i + 1]
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let tri =
+        ConstrainedDelaunayTriangulation::<Point2<T>>::bulk_load_cdt(vertices, edges).unwrap();
 
     let boundary_edges = tri.convex_hull().map(|edge| edge.rev()).collect::<Vec<_>>();
     let mut boundary_nodes: HashSet<_> =
@@ -125,7 +141,7 @@ where
 }
 
 fn recompute_boundary<'a, T>(
-    edge: DirectedEdgeHandle<'a, Point2<T>, (), (), ()>,
+    edge: DirectedEdgeHandle<'a, Point2<T>, (), CdtEdge<()>, ()>,
     pq: &mut BinaryHeap<CharScore<'a, T>>,
 ) where
     T: GeoFloat + SpadeNum,
