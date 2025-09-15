@@ -18,7 +18,10 @@ impl<T> SecondIndex<T> for VecDeque<T> {
 }
 
 fn melkman<T: GeoNum>(poly: &Polygon<T>) -> Vec<(usize, Coord<T>)> {
-    let mut poly_iter = poly.exterior_coords_iter().enumerate();
+    let mut poly_iter = poly
+        .exterior_coords_iter()
+        .take(poly.exterior().0.len() - 1)
+        .enumerate();
     let x = poly_iter.next().unwrap();
     let y = poly_iter.next().unwrap();
     let mut hull = VecDeque::from([y, x, y]);
@@ -26,17 +29,17 @@ fn melkman<T: GeoNum>(poly: &Polygon<T>) -> Vec<(usize, Coord<T>)> {
     for (index, v) in poly_iter {
         if matches!(
             T::Ker::orient2d(v, hull.front().unwrap().1, hull.front_less().unwrap().1),
-            Orientation::CounterClockwise
+            Orientation::CounterClockwise | Orientation::Collinear
         ) || matches!(
             T::Ker::orient2d(v, hull.back().unwrap().1, hull.back_less().unwrap().1),
-            Orientation::Clockwise
+            Orientation::Clockwise | Orientation::Collinear
         ) {
-            while let Orientation::CounterClockwise =
+            while let Orientation::CounterClockwise | Orientation::Collinear =
                 T::Ker::orient2d(v, hull.front().unwrap().1, hull.front_less().unwrap().1)
             {
                 hull.pop_front();
             }
-            while let Orientation::Clockwise =
+            while let Orientation::Clockwise | Orientation::Collinear =
                 T::Ker::orient2d(v, hull.back().unwrap().1, hull.back_less().unwrap().1)
             {
                 hull.pop_back();
@@ -75,6 +78,19 @@ mod test {
         ];
         let hull = poly.hull_indices();
         let correct = vec![4, 0, 1, 3, 4];
+        assert_eq!(hull, correct);
+    }
+
+    #[test]
+    fn collinear_test() {
+        let poly = polygon![
+            (x: 0.0, y: 0.0),
+            (x: 0.0, y: 1.0),
+            (x: 0.5, y: 0.5),
+            (x: 1.0, y: 0.0),
+        ];
+        let hull = poly.hull_indices();
+        let correct = vec![3, 0, 1, 3];
         assert_eq!(hull, correct);
     }
 }
