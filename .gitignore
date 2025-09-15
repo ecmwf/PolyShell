@@ -57,10 +57,14 @@ coverage.xml
 *.log
 *.pot
 
+# MacOS
 .DS_Store
 
 # Sphinx documentation
 docs/_build/
+
+# MkDocs documentation
+site/
 
 # PyCharm
 .idea/

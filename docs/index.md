@@ -2,16 +2,25 @@
 
 A high-performance coverage-preserving polygon reduction library for Python, written in Rust.
 
+![Benchmark](assets/Benchmark-Light.svg#only-light)
+![Benchmark](assets/Benchmark-Dark.svg#only-dark)
+/// caption
+Time to reduce a 50,000 point polygon by 90%.
+///
+
 ---
 
 ## Highlights
 
-- ✅ **Coverage Guarantees** — guarantees coverage of the initial polygon.
-- ⚡ **Rust-powered performance** — optimized algorithms for large datasets.
-- 🧩 **Simple Python API** — integrates into data science, GIS, and graphics pipelines.
-- 🌍 **Geospatial ready** — works seamlessly with [Shapely](https://shapely.readthedocs.io/) and [GeoPandas](https://geopandas.org/).
-- 📏 **Customizable** — control simplification levels and precision.
-- 🐍 **PyPy compatible** — out-of-the-box support for CPython and [PyPy](https://pypy.org/).
+- ✅ Guarantees encapsulation of the initial polygon.
+- 🔥 Rust-powered performance.
+- 🧩 A simple Python API to access all reduction methods and modes.
+- 🌍 Seamlessly integration with [NumPy](https://numpy.org/) and [Shapely](https://shapely.readthedocs.io/).
+- 📏 Tunable accuracy and reduction rates.
+- 🐍 Python and [PyPy](https://pypy.org/) compatible.
+
+PolyShell is supported by the [ECMWF](https://www.ecmwf.int/) through
+the [Code for Earth programme](https://codeforearth.ecmwf.int/).
 
 ---
 
@@ -19,38 +28,46 @@ A high-performance coverage-preserving polygon reduction library for Python, wri
 
 PolyShell is available on [PyPI](https://pypi.org/) for easy installation:
 
-=== "pip"
+<!-- termynal -->
 
-    ```console
-    $ pip install polyshell
-    ```
+```
+$ pip install polyshell
+---> 100%
+Successfully installed polyshell
+```
 
-=== "uv"
+!!! tip
 
-    ```console
-    $ uv add polyshell
-    ```
-
-Alternatively, PolyShell can also be built from source using [maturin](https://www.maturin.rs/). See the guide [here].
+    PolyShell can also be built from source using [maturin](https://www.maturin.rs/).
+    See the guide [here](./user-guide/installation.md#build-from-source).
 
 ---
 
 ## Example
 
-=== "Python 3.8+"
+All of PolyShell's reduction algorithms are accessible through `reduce_polygon`.
+
+=== "Python 3.10+"
 
     ```python
     from polyshell import reduce_polygon
+
+    original = [
+        (0.0, 0.0),
+        (0.0, 1.0),
+        (0.5, 0.5),
+        (1.0, 1.0),
+        (1.0, 0.0),
+        (0.0, 0.0),
+    ]
+
+    reduced = reduce_polygon(original, "auto", method="vw")
     ```
 
+For all the available options, see the [full list of features](user-guide/features.md).
 
 ---
 
-## Why PolyShell?
+## Learn more
 
-Polygon simplification is common in graphics, GIS, and computational geometry, but most algorithms risk cutting *into* the original shape — potentially losing important areas. PolyShell takes a different approach:
-
-- **Coverage-preserving** — the reduced polygon is guaranteed to completely enclose the original.
-- **High-performance** — written in Rust and exposed via Python for minimal overhead.
-- **Consistent & Robust** — works reliably with both simple and complex polygons.
-
+For more information see the [guide](user-guide/index.md)
