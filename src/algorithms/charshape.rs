@@ -1,4 +1,4 @@
-use geo::{Coord, GeoFloat, LineString, Polygon};
+use geo::{Coord, CoordsIter, GeoFloat, LineString, Polygon};
 use hashbrown::HashSet;
 use spade::handles::{DirectedEdgeHandle, VertexHandle};
 use spade::{CdtEdge, ConstrainedDelaunayTriangulation, Point2, SpadeNum, Triangulation};
@@ -77,8 +77,7 @@ where
 
     // Construct Delaunay triangulation
     let vertices = orig
-        .exterior()
-        .coords()
+        .exterior_coords_iter()
         .take(orig_len) // duplicate points are removed
         .map(|c| Point2::new(c.x, c.y))
         .collect::<Vec<_>>();
