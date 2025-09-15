@@ -58,3 +58,23 @@ impl<T: GeoNum> Melkman<T> for Polygon<T> {
         melkman(self).into_iter().map(|(index, _)| index).collect()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::algorithms::melkman::Melkman;
+    use geo::polygon;
+
+    #[test]
+    fn simple_test() {
+        let poly = polygon![
+            (x: 0.0, y: 0.0),
+            (x: 0.0, y: 1.0),
+            (x: 0.5, y: 0.5),
+            (x: 1.0, y: 1.0),
+            (x: 1.0, y: 0.0),
+        ];
+        let hull = poly.hull_indices();
+        let correct = vec![4, 0, 1, 3, 4];
+        assert_eq!(hull, correct);
+    }
+}
