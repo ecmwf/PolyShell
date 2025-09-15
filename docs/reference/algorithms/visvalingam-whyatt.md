@@ -1,9 +1,7 @@
----
-title: Visvalingam-Whyatt
----
+# Visvalingam-Whyatt
 
 The Visvalingam-Whyatt reduction method provided by PolyShell consists of a few modifications to the original line
-reduction algorithm by Visvalingam and Whyatt[^1] in order to guarantee PolyShell's contract.
+reduction algorithm by Visvalingam and Whyatt[^1] in order to guarantee [PolyShell's axioms].
 
 [^1]: [M. Visvalingam, J. D. Whyatt, 2013. Line generalisation by repeated elimination of points.](https://doi.org/10.1179/000870493786962263)
 
@@ -29,7 +27,7 @@ To apply the Visvalingam-Whyatt algorithm to the problem of polygon reduction, i
 self-intersections which may occur. These issues tend to occur most frequently in channel-like geometries, like the
 example given below. One fairly common solution is to check that removal of a vertex will not lead to a
 self-intersection, otherwise it is skipped. Naive implementations can prove costly, however this can be somewhat
-improved by first querying an R-tree to reduce the number of likely culprits.
+improved by first querying an [R-tree](https://en.wikipedia.org/wiki/R-tree) to reduce the number of likely culprits.
 
 TODO: Img with caption explanation
 
@@ -42,18 +40,18 @@ to increase the area of the reduced polygon and hence ensure coverage at each st
 
 ## Implementation Notes
 
-The formulation of PolyShell's contract provides the opportunity for some additional performance improvements beyond
+The formulation of [PolyShell's axioms] provides the opportunity for some additional performance improvements beyond
 those possible when using the standard Visvalingam-Whyatt algorithm. In this section we will describe all the
 adjustments made beyond a typical implementation of the Visvalingam-Whyatt algorithm. We will also provide some
 justification as to why these reductions are valid and some expectations on the resulting uplift in performance.
 
 ### Pre-processing
 
-Immediately obvious is that the minimal reduction of any polygon is it's convex hull. For most purposes this is a poor
-reduction, losing almost all detail in the original shape. The convex hull does however identify which vertices are
-invariant under reduction. This feature allows us to segment the polygon into isolated sections, each of which can be
-reduced independently of the others, allowing for parallel reduction on a single polygon. For this purpose we use
-Melkman's algorithm, to compute the convex hull in linear time[^4].
+Immediately obvious is that the minimal reduction of any polygon is it's [convex hull](https://en.wikipedia.org/wiki/Convex_hull).
+For most purposes this is a poor reduction, losing almost all detail in the original shape. The convex hull does however
+identify which vertices are invariant under reduction. This feature allows us to segment the polygon into isolated
+sections, each of which can be reduced independently of the others, allowing for parallel reduction on a single polygon.
+For this purpose we use Melkman's algorithm, to compute the convex hull in linear time[^4].
 
 [^4]: [A. Melkman, 1987. On-line construction of the convex hull of a simple polyline.](https://doi.org/10.1016/0020-0190(87)90086-X)
 
@@ -66,3 +64,5 @@ necessary, as our reduction only expands outwards. Hence, edges which are remove
 Similarly, no new edges need to be added, as if a reduction causes an intersection with a new edge, then it would have
 already caused an intersection with one of the original edges. We have found that while a larger tree must be queried
 at every iteration, the savings by not rebalancing the tree outweigh any potential cost.
+
+[PolyShell's axioms]: ../../user-guide/axioms.md

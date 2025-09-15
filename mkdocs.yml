@@ -4,21 +4,19 @@ theme:
   name: material
 
   features:
-    - navigation.path
-    - navigation.footer
-    - navigation.instant
-    - navigation.instant.prefetch
-    - navigation.instant.progress
-    - navigation.sections
-    - navigation.indexes
-    - navigation.tracking
     - content.code.annotate
     - content.code.copy
-#    - content.code.select
-    - toc.follow
-    - navigation.footer
-    - navigation.top
     - content.tabs.link
+    - content.tooltips
+    - navigation.expand
+    - navigation.footer
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tracking
+    - toc.follow
 
   palette:
     # Palette toggle for automatic mode
@@ -42,8 +40,17 @@ theme:
         name: Switch to system preference
 
 markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - footnotes
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.blocks.caption
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -61,13 +68,31 @@ markdown_extensions:
       slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
           case: lower
-  - attr_list
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Introduction:
+      - index.md
+  - User guide:
+      - user-guide/index.md
+      - Installation: user-guide/installation.md
+      - Features: user-guide/features.md
+      - Axioms: user-guide/axioms.md
+      - Getting help: user-guide/getting-help.md
+  - Reference:
+      - reference/index.md
+      - Algorithms:
+          - Visvalingam-Whyatt: reference/algorithms/visvalingam-whyatt.md
+          - Ramer-Douglas-Peucker: reference/algorithms/ramer-douglas-peucker.md
+          - Charshape: reference/algorithms/charshape.md
+      - Benchmarks: reference/benchmarks.md
 
 plugins:
   - search
+  - termynal:
+      prompt_literal_start:
+        - "$"
+        - ">"
+
 extra_javascript:
   - javascripts/katex.js
   - https://unpkg.com/katex@0/dist/katex.min.js
@@ -79,5 +104,5 @@ extra_css:
 repo_url: https://github.com/ECMWFCode4Earth/PolyShell
 repo_name: polyshell
 site_author: nialloswald
-site_url: https://ecmwfcode4earth.github.io/polyshell
-site_description: TODO
+site_url: https://ecmwfcode4earth.github.io/PolyShell/
+site_description: A high-performance coverage-preserving polygon reduction library for Python, written in Rust.
