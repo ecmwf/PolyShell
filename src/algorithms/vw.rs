@@ -13,6 +13,8 @@ use crate::extensions::segments::{FromSegments, HullSegments};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
+/// Store triangle information. Score is used for ranking the priority queue which determines
+/// removal order.
 #[derive(Debug)]
 struct VWScore<T: CoordFloat> {
     score: T,
@@ -42,6 +44,10 @@ impl<T: CoordFloat> PartialEq for VWScore<T> {
     }
 }
 
+/// Area and topology preserving Visvalingam-Whyatt algorithm
+/// adapted from the [geo implementation](https://github.com/georust/geo/blob/e8419735b5986f120ddf1de65ac68c1779c3df30/geo/src/algorithm/simplify_vw.rs)
+///
+///
 fn visvalingam_preserve<T>(orig: &LineString<T>, eps: T, min_len: usize) -> Vec<Coord<T>>
 where
     T: GeoFloat + RTreeNum,
@@ -56,6 +62,8 @@ where
     let tree: RTree<CachedEnvelope<_>> =
         RTree::bulk_load(orig.lines().map(CachedEnvelope::new).collect::<Vec<_>>());
 
+    // Point adjacency. Tuple at index contains indices into `orig`. Negative values or values
+    // greater than or equal to max means no next element. (0, 0) sentinel means deleted element.
     let mut adjacent: Vec<_> = (0..orig.0.len())
         .map(|i| {
             if i == 0 {
@@ -66,6 +74,11 @@ where
         })
         .collect();
 
+    // Store all triangles in a minimum priority queue, based on signed area.
+    //
+    // Only triangles of positive score are pushed to the heap.
+    // Invalid triangles are *not* removed when the corresponding point is removed; they are
+    // invalidated using (0, 0) values in `adjacent` and skipped as necessary.
     let mut pq = orig
         .ord_triangles()
         .enumerate()
@@ -78,16 +91,25 @@ where
         .filter(|point| point.score >= T::zero())
         .collect::<BinaryHeap<VWScore<T>>>();
 
+    // Iterate over points while there is an associated triangle with area between 0 and epsilon
     while let Some(smallest) = pq.pop() {
         if smallest.score > eps {
+            // Min-heap guarantees all future points have areas greater than epsilon
+            break;
+        }
+
+        if len <= min_len {
+            // Further removal would send us below the minimum length
             break;
         }
 
         let (left, right) = adjacent[smallest.current];
+        // A point in this triangle has been removed since this `VScore` was created, so skip it
         if left != smallest.left as i32 || right != smallest.right as i32 {
             continue;
         }
 
+        // Removal of this point would cause self-intersection, so skip it
         if tree_intersect(&tree, &smallest, &orig.0) {
             continue;
         }
@@ -96,16 +118,20 @@ where
         let (_, rr) = adjacent[right as usize];
         adjacent[left as usize] = (ll, right);
         adjacent[right as usize] = (left, rr);
+        // Remove the point from the adjacency list
         adjacent[smallest.current] = (0, 0);
+        // Update the length of the linestring
         len -= 1;
+        // The rtree is never updated as self-intersection can never occur with stale segments and
+        // if a segment were to intersect with a new segment, then it also intersects with a stale
+        // segment
 
-        if len == min_len {
-            break;
-        }
-
+        // Recompute the areas of adjacent triangles(s) using left and right adjacent points,
+        // this may add new triangles to the heap
         recompute_triangles(orig, &mut pq, ll, left, right, rr, max);
     }
 
+    // Filter out deleted points, returning remaining points
     orig.0
         .iter()
         .zip(adjacent.iter())
@@ -113,6 +139,10 @@ where
         .collect()
 }
 
+/// Check whether the removal of a candidate point would cause a self-intersection.
+///
+/// To do this efficiently, and rtree is queried for any existing line segments which fall within
+/// the bounding box of the new line segment created.
 fn tree_intersect<T>(
     tree: &RTree<CachedEnvelope<Line<T>>>,
     triangle: &VWScore<T>,
@@ -142,6 +172,7 @@ where
         })
 }
 
+/// Recompute adjacent triangle(s) using left and right adjacent points, pushing to the heap
 fn recompute_triangles<T: CoordFloat>(
     orig: &LineString<T>,
     pq: &mut BinaryHeap<VWScore<T>>,
@@ -154,6 +185,7 @@ fn recompute_triangles<T: CoordFloat>(
     let choices = [(ll, left, right), (left, right, rr)];
     for &(ai, current_point, bi) in &choices {
         if ai as usize >= max || bi as usize >= max {
+            // Out of bounds, i.e. we're at an end point
             continue;
         }
 
@@ -164,6 +196,7 @@ fn recompute_triangles<T: CoordFloat>(
         )
         .signed_area();
 
+        // If removal of a point would cause a reduction in signed area, skip it
         if area < T::zero() {
             continue;
         }
@@ -178,7 +211,10 @@ fn recompute_triangles<T: CoordFloat>(
     }
 }
 
+/// Simplifies a geometry while preserving its topology and area.
 pub trait SimplifyVW<T, Epsilon = T> {
+    /// Returns the simplified geometry using a topology and area preserving variant of the
+    /// [Visvalingam-Whyatt](https://doi.org/10.1179/000870493786962263) algorithm.
     fn simplify_vw(&self, eps: Epsilon, len: usize) -> Self;
 }
 
@@ -196,6 +232,7 @@ where
     T: GeoFloat + RTreeNum + Send + Sync,
 {
     fn simplify_vw(&self, eps: T, len: usize) -> Self {
+        // Get convex hull segments, as their endpoints are invariant under reduction
         let segments = self.hull_segments();
 
         if len > segments.len() {
