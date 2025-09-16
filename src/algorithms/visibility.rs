@@ -145,4 +145,23 @@ mod tests {
         ];
         assert_eq!(visiblity_polygon(&ls), correct);
     }
+
+    #[test]
+    fn collinear_test() {
+        let ls = vec![
+            coord! { x: 0.0, y: 0.0 },
+            coord! { x: 1.0, y: -2.0 },
+            coord! { x: 2.0, y: 0.0 },
+            coord! { x: 3.0, y: 0.0 },
+            coord! { x: 4.0, y: -2.0 },
+            coord! { x: 5.0, y: 0.0 },
+        ];
+        let correct = vec![
+            (0, coord! { x: 0.0, y: 0.0 }),
+            (2, coord! { x: 2.0, y: 0.0 }),
+            (3, coord! { x: 3.0, y: 0.0 }),
+            (5, coord! { x: 5.0, y: 0.0 }),
+        ];
+        assert_eq!(visiblity_polygon(&ls), correct);
+    }
 }
