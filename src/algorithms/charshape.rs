@@ -75,6 +75,8 @@ where
     // Number of unique vertices
     let orig_len = orig.exterior().0.len() - 1;
 
+    let eps_2 = eps * eps;
+
     // Construct Delaunay triangulation
     let vertices = orig
         .exterior_coords_iter()
@@ -108,7 +110,7 @@ where
         .collect::<BinaryHeap<_>>();
 
     while let Some(largest) = pq.pop() {
-        if largest.score < eps || boundary_nodes.len() >= max_len {
+        if largest.score < eps_2 || boundary_nodes.len() >= max_len {
             break;
         }
 
