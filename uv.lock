@@ -1151,8 +1151,14 @@ source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "benchmark" },
     { name = "maturin" },
     { name = "pyinstrument" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.3.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pytest" },
+    { name = "pytest-cases" },
+    { name = "shapely" },
 ]
 docs = [
     { name = "mkdocs-material" },
@@ -1162,10 +1168,8 @@ scripts = [
     { name = "matplotlib" },
 ]
 testing = [
-    { name = "maturin" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.3.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "pyinstrument" },
     { name = "pytest" },
     { name = "pytest-cases" },
     { name = "shapely" },
@@ -1175,8 +1179,13 @@ testing = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "benchmark", editable = "scripts/benchmark" },
     { name = "maturin", specifier = ">=1.9.3" },
     { name = "pyinstrument", specifier = ">=5.0.3" },
+    { name = "numpy", specifier = ">=2.2.6" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-cases", specifier = ">=3.9.1" },
+    { name = "shapely", specifier = ">=2.0.7" },
 ]
 docs = [
     { name = "mkdocs-material", specifier = ">=9.6.15" },
@@ -1184,9 +1193,7 @@ docs = [
 ]
 scripts = [{ name = "matplotlib", specifier = ">=3.7.5" }]
 testing = [
-    { name = "maturin", specifier = ">=1.9.3" },
     { name = "numpy", specifier = ">=2.2.6" },
-    { name = "pyinstrument", specifier = ">=5.0.3" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-cases", specifier = ">=3.9.1" },
     { name = "shapely", specifier = ">=2.0.7" },

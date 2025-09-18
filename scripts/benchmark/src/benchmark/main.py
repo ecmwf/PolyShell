@@ -39,7 +39,9 @@ def plot_bench(results: list[tuple[float, str]]) -> None:
 
         fig, ax = plt.subplots(figsize=(8, 2))
         sns.barplot(x=times, y=labels, ax=ax)
-        ax.bar_label(ax.containers[0], [f" {1000 * t:.0f}ms" for t in times], fontsize=16)
+        ax.bar_label(
+            ax.containers[0], [f" {1000 * t:.0f}ms" for t in times], fontsize=16
+        )
 
         for patch in ax.patches:
             current_width = patch.get_height()
@@ -53,7 +55,9 @@ def plot_bench(results: list[tuple[float, str]]) -> None:
 
         sns.despine(left=True, bottom=True)
         plt.tight_layout()
-        plt.savefig(f"Benchmark-{'Light' if light_mode else 'Dark'}.svg", transparent=True)
+        plt.savefig(
+            f"Benchmark-{'Light' if light_mode else 'Dark'}.svg", transparent=True
+        )
         plt.show()
 
 
@@ -92,7 +96,7 @@ def benchmark(poly, method, eps, count=1) -> float:
     return timeit.timeit(runner, number=count) / count
 
 
-if __name__ == "__main__":
+def main():
     with open("../../tests/data/sea/ionian_sea.pkl", "rb") as f:
         poly = pickle.load(f)
     target = 10570  # 90% reduction
@@ -101,5 +105,11 @@ if __name__ == "__main__":
     bench = [(method, eps, label) for (method, label), eps in zip(BENCHMARKS, eps_vals)]
     assert verify_bench(poly, bench, target)
 
-    results = [(benchmark(poly, method, eps, count=100), label) for method, eps, label in bench]
+    results = [
+        (benchmark(poly, method, eps, count=100), label) for method, eps, label in bench
+    ]
     plot_bench(results)
+
+
+if __name__ == "__main__":
+    main()
