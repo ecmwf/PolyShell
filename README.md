@@ -6,6 +6,7 @@ A high-performance coverage-preserving polygon reduction library for Python, wri
 ![Build Status](https://img.shields.io/github/actions/workflow/status/ECMWFCode4Earth/PolyShell/CI.yml)
 ![Docs Build Status](https://img.shields.io/github/actions/workflow/status/ECMWFCode4Earth/PolyShell/publish-docs.yml?label=docs)
 
+
 <p align="center">
   <picture align="center">
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/Benchmark-Dark.svg">
