@@ -1,4 +1,4 @@
-name: mkdocs
+name: deploy-docs
 
 on:
   push:
@@ -42,4 +42,4 @@ jobs:
             mkdocs-material-
 
       - name: Deploy to GitHub pages
-        run: mkdocs gh-deploy --force
+        run: uv run --only-group docs mkdocs gh-deploy --force
