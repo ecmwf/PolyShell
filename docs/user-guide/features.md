@@ -85,7 +85,7 @@ in the third position or using the keyword argument `epsilon`:
         (0.0, 0.0),
     ]
 
-    reduced = reduce_polygon(original, "eps", epsilon=0.1, method="vw")
+    reduced = reduce_polygon(original, "epsilon", epsilon=0.1, method="vw")
     ```
 
 ### Length
