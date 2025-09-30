@@ -2,10 +2,13 @@
 
 A high-performance coverage-preserving polygon reduction library for Python, written in Rust.
 
+<div align="center">
+
 ![PyPI - Version](https://img.shields.io/pypi/v/polyshell)
 ![Build Status](https://img.shields.io/github/actions/workflow/status/ECMWFCode4Earth/PolyShell/CI.yml)
 ![Docs Build Status](https://img.shields.io/github/actions/workflow/status/ECMWFCode4Earth/PolyShell/publish-docs.yml?label=docs)
 
+</div>
 
 <p align="center">
   <picture align="center">
@@ -74,5 +77,5 @@ the [full list of features](https://ecmwfcode4earth.github.io/PolyShell/user-gui
 
 ## Learn more
 
-For more information see the [guide](https://ecmwfcode4earth.github.io/PolyShell/user-guide/)
+For more information see the [guide](https://ecmwfcode4earth.github.io/PolyShell/user-guide/).
 
