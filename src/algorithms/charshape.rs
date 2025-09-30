@@ -104,7 +104,7 @@ where
     let mut pq = boundary_edges
         .iter()
         .map(|&line| CharScore {
-            score: line.length_2(), // TODO: this is the squared length
+            score: line.length_2(),
             edge: line,
         })
         .collect::<BinaryHeap<_>>();
@@ -121,7 +121,7 @@ where
         }
 
         let [from, to] = largest.edge.vertices().map(|v| v.index());
-        if (to == from + 1) || (from == to + 1) {
+        if (to == from + 1) || (from == to + 1) || (to + from + 1 == orig_len) {
             continue;
         }
 
