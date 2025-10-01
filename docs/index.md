@@ -68,4 +68,4 @@ For all the available options, see the [full list of features](user-guide/featur
 
 ## Learn more
 
-For more information see the [guide](user-guide/index.md)
+For more information see the [guide](user-guide/index.md).

@@ -1,4 +1,4 @@
-use crate::algorithms::melkman::Melkman;
+use crate::algorithms::hull_melkman::Melkman;
 use geo::{GeoNum, LineString, Polygon};
 
 pub trait HullSegments<T: GeoNum> {
@@ -37,7 +37,7 @@ impl<T: GeoNum> FromSegments<Vec<LineString<T>>> for LineString<T> {
                 acc.extend(new.into_iter().skip(1));
                 acc
             })
-            .unwrap()
+            .unwrap_or_default()
             .into()
     }
 }

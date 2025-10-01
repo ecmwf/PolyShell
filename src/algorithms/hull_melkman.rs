@@ -18,13 +18,19 @@ impl<T> SecondIndex<T> for VecDeque<T> {
 }
 
 fn melkman<T: GeoNum>(poly: &Polygon<T>) -> Vec<(usize, Coord<T>)> {
-    let mut poly_iter = poly
-        .exterior_coords_iter()
-        .take(poly.exterior().0.len() - 1)
-        .enumerate();
-    let x = poly_iter.next().unwrap();
-    let y = poly_iter.next().unwrap();
+    let [x, y] = match poly.exterior().0.as_slice() {
+        [] => return vec![],
+        &[x] => return vec![(0, x)],
+        &[x, y, ..] => [(0, x), (1, y)],
+    };
+
     let mut hull = VecDeque::from([y, x, y]);
+
+    let poly_iter = poly
+        .exterior_coords_iter()
+        .enumerate()
+        .skip(2)
+        .take(poly.exterior().0.len() - 1);
 
     for (index, v) in poly_iter {
         if matches!(
@@ -64,7 +70,7 @@ impl<T: GeoNum> Melkman<T> for Polygon<T> {
 
 #[cfg(test)]
 mod test {
-    use crate::algorithms::melkman::Melkman;
+    use crate::algorithms::hull_melkman::Melkman;
     use geo::polygon;
 
     #[test]

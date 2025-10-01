@@ -15,6 +15,7 @@ __all__ = [
     "reduce_polygon_eps",
     "reduce_polygon_len",
     "reduce_polygon_auto",
+    "is_clockwise",
 ]
 
 
@@ -144,7 +145,8 @@ def reduce_polygon_len(
         case ReductionMethod.RDP:
             raise NotImplementedError("Fixed length is not implemented for RDP")
         case ReductionMethod.VW:
-            return reduce_polygon_vw(polygon, float("inf"), length)  # minimum length
+            # minimum length
+            return reduce_polygon_vw(polygon, float("inf"), length)
         case _:
             raise ValueError(
                 f"Unknown reduction method. Must be one of {[e.value for e in ReductionMethod]}"

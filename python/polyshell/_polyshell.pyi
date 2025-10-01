@@ -16,3 +16,21 @@ def reduce_polygon_vw(
     polygon: SupportsIntoVec, eps: float, len: int
 ) -> list[list[float]]:
     """Reduce a polygon while retaining coverage."""
+
+def reduce_polygon_char_unchecked(
+    polygon: SupportsIntoVec, eps: float, len: int
+) -> list[list[float]]:
+    """Reduce a polygon while retaining coverage."""
+
+def reduce_polygon_rdp_unchecked(
+    polygon: SupportsIntoVec, eps: float
+) -> list[list[float]]:
+    """Reduce a polygon while retaining coverage."""
+
+def reduce_polygon_vw_unchecked(
+    polygon: SupportsIntoVec, eps: float, len: int
+) -> list[list[float]]:
+    """Reduce a polygon while retaining coverage."""
+
+def is_valid(polygon: SupportsIntoVec) -> bool:
+    """Check a polygon is valid."""
