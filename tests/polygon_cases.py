@@ -162,3 +162,24 @@ class CaseSmall:
                     (0.0, 0.0),
                 ]
             )
+
+    class CaseOrientation:
+        def case_clockwise(self):
+            return (
+                (0.0, 0.0),
+                (0.0, 1.0),
+                (0.5, 0.5),
+                (1.0, 1.0),
+                (1.0, 0.0),
+                (0.0, 0.0),
+            )
+
+        def case_counter_clockwise(self):
+            return (
+                (0.0, 0.0),
+                (1.0, 0.0),
+                (1.0, 1.0),
+                (0.5, 0.5),
+                (0.0, 1.0),
+                (0.0, 0.0),
+            )
