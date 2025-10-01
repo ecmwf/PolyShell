@@ -59,3 +59,10 @@ members = [
 
 [tool.pytest.ini_options]
 testpaths = "tests"
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "polyshell",
+    "benchmark",
+    "cli",
+]
