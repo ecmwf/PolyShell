@@ -57,22 +57,17 @@ except ImportError:
 
 def into_polygon(obj: any) -> Sequence[tuple[float, float]]:
     """Cast a polygon object into a supported type."""
-    polygon = None
     match obj:
         case [*_] as seq:
-            polygon = seq
+            return seq
         case ndarray() as arr:
-            polygon = arr
+            return arr
         case ShapelyPolygon(exterior=exterior):
-            polygon = exterior.coords
+            return exterior.coords
         case _:
             raise TypeError(
                 f"{type(obj)} cannot be interpreted as Polygon object {ShapelyPolygon}"
             )
-    if is_clockwise(polygon):
-        return polygon
-    elif not is_clockwise(polygon):
-        return polygon[::-1]
 
 
 @overload
