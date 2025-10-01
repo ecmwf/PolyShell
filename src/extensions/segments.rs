@@ -1,4 +1,4 @@
-use crate::algorithms::melkman::Melkman;
+use crate::algorithms::hull_melkman::Melkman;
 use geo::{GeoNum, LineString, Polygon};
 
 pub trait HullSegments<T: GeoNum> {
