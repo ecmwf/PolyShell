@@ -51,27 +51,6 @@ except ImportError:
     ndarray = NullClass
 
 
-# def is_clockwise(poly):
-#     signed_area = 0
-#     for i, point in enumerate(poly):
-#         x1 = point[0]
-#         y1 = point[1]
-#         if i == len(poly) - 1:
-#             x2 = poly[0][0]
-#             y2 = poly[0][1]
-#         else:
-#             x2 = poly[i+1][0]
-#             y2 = poly[i+1][1]
-
-    signed_area += (x1 * y2 - x2 * y1)
-    if signed_area < 0:
-        return True
-    if signed_area > 0:
-        return False
-    else:
-        raise ValueError("Polygon is degenerate.")
-
-
 def into_polygon(obj: any) -> Sequence[tuple[float, float]]:
     """Cast a polygon object into a supported type."""
     polygon = None

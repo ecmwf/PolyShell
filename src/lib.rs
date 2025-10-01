@@ -1,7 +1,6 @@
 use algorithms::charshape::SimplifyCharshape;
 use algorithms::rdp::SimplifyRDP;
 use algorithms::vw::SimplifyVW;
-use algorithms::vw_convex::SimplifyVWConvex;
 use utility::polygon_processing::is_clockwise;
 use geo::Polygon;
 use pyo3::prelude::*;
