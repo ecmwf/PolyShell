@@ -3,6 +3,7 @@ from pathlib import Path
 
 import typer
 from matplotlib import pyplot as plt
+
 from polyshell import ReductionMethod, ReductionMode, reduce_polygon
 
 app = typer.Typer(no_args_is_help=True)
