@@ -24,7 +24,11 @@ class TestRequirements:
         self, polygon: list[tuple[float, float]], simplified: list[tuple[float, float]]
     ):
         """Ensure reduced polygon vertices are a subset of the originals."""
-        original_set = set(map(lambda v: tuple(v), polygon))
+        if isinstance(polygon, ShapelyPolygon):
+            original_set = set(
+                map(lambda v: tuple(v), list(polygon.exterior.coords)))
+        else:
+            original_set = set(map(lambda v: tuple(v), polygon))
         simplified_set = set(map(lambda v: tuple(v), simplified))
 
         assert simplified_set <= original_set
