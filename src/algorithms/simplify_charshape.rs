@@ -72,19 +72,22 @@ fn characteristic_shape<T>(orig: &Polygon<T>, eps: T, max_len: usize) -> Polygon
 where
     T: GeoFloat + SpadeNum,
 {
-    // Number of unique vertices
-    let orig_len = orig.exterior().0.len() - 1;
+    let orig_len = orig.exterior().0.len();
+
+    if orig_len < 3 {
+        return orig.clone();
+    }
 
     let eps_2 = eps * eps;
 
     // Construct Delaunay triangulation
     let vertices = orig
         .exterior_coords_iter()
-        .take(orig_len) // duplicate points are removed
+        .take(orig_len - 1) // duplicate points are removed
         .map(|c| Point2::new(c.x, c.y))
         .collect::<Vec<_>>();
 
-    let edges = (0..orig_len - 1)
+    let edges = (0..orig_len - 2)
         .map(|i| {
             if i == 0 {
                 [vertices.len() - 1, i]
@@ -121,7 +124,7 @@ where
         }
 
         let [from, to] = largest.edge.vertices().map(|v| v.index());
-        if (to == from + 1) || (from == to + 1) || (to + from + 1 == orig_len) {
+        if (to == from + 1) || (from == to + 1) || (to + from + 2 == orig_len) {
             continue;
         }
 

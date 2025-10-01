@@ -37,7 +37,7 @@ impl<T: GeoNum> FromSegments<Vec<LineString<T>>> for LineString<T> {
                 acc.extend(new.into_iter().skip(1));
                 acc
             })
-            .unwrap()
+            .unwrap_or_default()
             .into()
     }
 }
