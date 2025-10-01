@@ -1,8 +1,7 @@
 """Fixtures and test cases."""
 
-from pytest_cases import fixture, parametrize_with_cases  # type: ignore
-
 from polyshell import ReductionMethod, ReductionMode, reduce_polygon
+from pytest_cases import fixture, parametrize_with_cases  # type: ignore
 
 
 @fixture(scope="class")

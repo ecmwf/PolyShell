@@ -37,7 +37,7 @@ def plot_bench(results: list[tuple[float, str]]) -> None:
     for light_mode in [True, False]:
         set_theme(light_mode)
 
-        fig, ax = plt.subplots(figsize=(8, 2))
+        _, ax = plt.subplots(figsize=(8, 2))
         sns.barplot(x=times, y=labels, ax=ax)
         ax.bar_label(
             ax.containers[0], [f" {1000 * t:.0f}ms" for t in times], fontsize=16
@@ -92,7 +92,9 @@ def verify_bench(poly, benches, target) -> bool:
 
 
 def benchmark(poly, method, eps, count=1) -> float:
-    runner = lambda: method(poly, eps)
+    def runner():
+        return method(poly, eps)
+
     return timeit.timeit(runner, number=count) / count
 
 
