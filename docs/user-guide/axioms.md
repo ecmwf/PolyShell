@@ -19,6 +19,8 @@ All input to PolyShell is expected to be valid.
     3. There are no duplicate points or self-intersections.
     4. The vertices are stored as a sequence in clockwise order.
 
+Whether a polygon abides to these requirements can be checked using the provided `is_valid` function.
+
 !!! tip
 
     When using validated functions, PolyShell with automatically correct for incorrect ordering. This point is only

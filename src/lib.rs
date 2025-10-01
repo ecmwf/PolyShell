@@ -98,6 +98,12 @@ fn reduce_polygon_rdp_unchecked(orig: Vec<[f64; 2]>, eps: f64) -> PyResult<Vec<(
     Ok(coords)
 }
 
+#[pyfunction]
+fn is_valid(poly: Vec<[f64; 2]>) -> PyResult<bool> {
+    let poly = Polygon::new(poly.into(), vec![]);
+    Ok(poly.is_valid() && poly.exterior().is_cw())
+}
+
 #[pymodule]
 fn _polyshell(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(reduce_polygon_vw, m)?)?;
@@ -107,6 +113,8 @@ fn _polyshell(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(reduce_polygon_vw_unchecked, m)?)?;
     m.add_function(wrap_pyfunction!(reduce_polygon_char_unchecked, m)?)?;
     m.add_function(wrap_pyfunction!(reduce_polygon_rdp_unchecked, m)?)?;
+
+    m.add_function(wrap_pyfunction!(is_valid, m)?)?;
 
     Ok(())
 }
