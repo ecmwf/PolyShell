@@ -1,5 +1,5 @@
 use geo::sweep::{Cross, Intersections};
-use geo::{GeoFloat, GeoNum, HasDimensions, Line, Polygon, Winding};
+use geo::{GeoFloat, GeoNum, HasDimensions, Line, Polygon};
 use std::error::Error;
 use std::fmt;
 
@@ -8,7 +8,6 @@ pub enum InvalidPolygon {
     TooFewPoints,
     OpenChain,
     SelfIntersection,
-    CounterClockwise,
     NonFiniteCoord(usize),
 }
 
@@ -20,9 +19,6 @@ impl fmt::Display for InvalidPolygon {
             }
             InvalidPolygon::OpenChain => write!(f, "Polygon is not closed"),
             InvalidPolygon::SelfIntersection => write!(f, "Polygon has a self-intersection"),
-            InvalidPolygon::CounterClockwise => {
-                write!(f, "Polygon coordinates must be oriented clockwise")
-            }
             InvalidPolygon::NonFiniteCoord(index) => {
                 write!(f, "Polygon has a non-finite coordinate at index {index}")
             }
@@ -99,11 +95,6 @@ impl<T: GeoFloat> Validate for Polygon<T> {
             if (idx1 as isize - idx2 as isize).abs() > 1 && idx1 + idx2 + 2 < ls.0.len() {
                 return Err(InvalidPolygon::SelfIntersection);
             }
-        }
-
-        // Check points are oriented cw
-        if !ls.is_cw() {
-            return Err(InvalidPolygon::CounterClockwise);
         }
 
         Ok(())
