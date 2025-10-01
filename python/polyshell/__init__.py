@@ -2,7 +2,11 @@ from collections.abc import Sequence
 from enum import Enum
 from typing import Literal, overload
 
-from polyshell._polyshell import *
+from polyshell._polyshell import (
+    reduce_polygon_char,
+    reduce_polygon_rdp,
+    reduce_polygon_vw,
+)
 
 __all__ = [
     "ReductionMethod",

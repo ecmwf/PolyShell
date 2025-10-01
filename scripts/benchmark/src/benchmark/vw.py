@@ -1,8 +1,7 @@
 """Benchmarks for Visvalingam-Whyatt."""
 
-from simplification.cutil import simplify_coords_vwp
-
 from polyshell import reduce_polygon
+from simplification.cutil import simplify_coords_vwp
 
 
 def polyshell_vw(poly, eps):

@@ -6,7 +6,6 @@ from collections.abc import Sequence
 import numpy as np
 from numpy.typing import NDArray
 from shapely import Polygon as ShapelyPolygon
-from shapely.coords import CoordinateSequence
 
 
 class CaseLarge:
