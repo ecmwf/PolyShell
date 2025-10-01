@@ -25,8 +25,7 @@ class TestRequirements:
     ):
         """Ensure reduced polygon vertices are a subset of the originals."""
         if isinstance(polygon, ShapelyPolygon):
-            original_set = set(
-                map(lambda v: tuple(v), list(polygon.exterior.coords)))
+            original_set = set(map(lambda v: tuple(v), list(polygon.exterior.coords)))
         else:
             original_set = set(map(lambda v: tuple(v), polygon))
         simplified_set = set(map(lambda v: tuple(v), simplified))

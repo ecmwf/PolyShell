@@ -143,8 +143,7 @@ def reduce_polygon_len(
         case ReductionMethod.CHARSHAPE:
             return reduce_polygon_char(polygon, 0.0, length)  # maximum length
         case ReductionMethod.RDP:
-            raise NotImplementedError(
-                "Fixed length is not implemented for RDP")
+            raise NotImplementedError("Fixed length is not implemented for RDP")
         case ReductionMethod.VW:
             # minimum length
             return reduce_polygon_vw(polygon, float("inf"), length)

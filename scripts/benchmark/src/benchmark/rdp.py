@@ -1,6 +1,7 @@
 """Benchmarks for Ramer-Douglas-Peucher."""
 
 import shapely
+
 from polyshell import reduce_polygon
 
 
