@@ -1,11 +1,14 @@
 use algorithms::charshape::SimplifyCharshape;
 use algorithms::rdp::SimplifyRDP;
 use algorithms::vw::SimplifyVW;
+use algorithms::vw_convex::SimplifyVWConvex;
+use utility::polygon_processing::is_clockwise;
 use geo::Polygon;
 use pyo3::prelude::*;
 
 mod algorithms;
 mod extensions;
+mod utility;
 
 #[pyfunction]
 fn reduce_polygon_vw(orig: Vec<[f64; 2]>, eps: f64, len: usize) -> PyResult<Vec<(f64, f64)>> {
@@ -48,5 +51,6 @@ fn _polyshell(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(reduce_polygon_vw, m)?)?;
     m.add_function(wrap_pyfunction!(reduce_polygon_char, m)?)?;
     m.add_function(wrap_pyfunction!(reduce_polygon_rdp, m)?)?;
+    m.add_function(wrap_pyfunction!(is_clockwise, m)?)?;
     Ok(())
 }

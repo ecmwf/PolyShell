@@ -11,6 +11,7 @@ __all__ = [
     "reduce_polygon_eps",
     "reduce_polygon_len",
     "reduce_polygon_auto",
+    "is_clockwise",
 ]
 
 
@@ -50,19 +51,19 @@ except ImportError:
     ndarray = NullClass
 
 
-def is_clockwise(poly):
-    signed_area = 0
-    for i, point in enumerate(poly):
-        x1 = point[0]
-        y1 = point[1]
-        if i == len(poly) - 1:
-            x2 = poly[0][0]
-            y2 = poly[0][1]
-        else:
-            x2 = poly[i + 1][0]
-            y2 = poly[i + 1][1]
+# def is_clockwise(poly):
+#     signed_area = 0
+#     for i, point in enumerate(poly):
+#         x1 = point[0]
+#         y1 = point[1]
+#         if i == len(poly) - 1:
+#             x2 = poly[0][0]
+#             y2 = poly[0][1]
+#         else:
+#             x2 = poly[i+1][0]
+#             y2 = poly[i+1][1]
 
-        signed_area += x1 * y2 - x2 * y1
+    signed_area += (x1 * y2 - x2 * y1)
     if signed_area < 0:
         return True
     if signed_area > 0:
@@ -164,7 +165,8 @@ def reduce_polygon_len(
         case ReductionMethod.CHARSHAPE:
             return reduce_polygon_char(polygon, 0.0, length)  # maximum length
         case ReductionMethod.RDP:
-            raise NotImplementedError("Fixed length is not implemented for RDP")
+            raise NotImplementedError(
+                "Fixed length is not implemented for RDP")
         case ReductionMethod.VW:
             # minimum length
             return reduce_polygon_vw(polygon, float("inf"), length)
