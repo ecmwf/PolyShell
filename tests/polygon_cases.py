@@ -183,3 +183,14 @@ class CaseSmall:
                 (0.0, 1.0),
                 (0.0, 0.0),
             )
+
+    def case_null(self):
+        return []
+
+    def case_triangle(self):
+        return [
+            (0.0, 0.0),
+            (0.0, 1.0),
+            (1.0, 0.0),
+            (0.0, 0.0),
+        ]
