@@ -39,4 +39,11 @@ class TestRequirements:
         original_shapely = ShapelyPolygon(polygon)
         simplified_shapely = ShapelyPolygon(simplified)
 
-        assert simplified_shapely.contains(original_shapely)
+        if isinstance(polygon, ShapelyPolygon):
+            length = polygon.length
+        else:
+            length = len(polygon)
+
+        # The null polygon cannot contain itself
+        if length:
+            assert simplified_shapely.contains(original_shapely)
