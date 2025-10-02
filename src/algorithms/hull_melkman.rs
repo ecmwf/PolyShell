@@ -18,7 +18,6 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
-
 use geo::{Coord, CoordsIter, GeoNum, Kernel, Orientation, Polygon};
 use std::collections::VecDeque;
 use std::ops::Sub;

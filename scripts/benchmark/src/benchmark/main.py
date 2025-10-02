@@ -73,8 +73,7 @@ def plot_bench(results: list[tuple[float, str]]) -> None:
             patch.set_y(patch.get_y() + diff * 0.5)
 
         ax.set_xticks([0.0, 0.05, 0.10, 0.15])
-        ax.xaxis.set_major_formatter(
-            FuncFormatter(lambda t, p: f"{1000 * t:.0f}ms"))
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda t, p: f"{1000 * t:.0f}ms"))
 
         sns.despine(left=True, bottom=True)
         plt.tight_layout()
@@ -127,8 +126,7 @@ def main():
     target = 10570  # 90% reduction
 
     eps_vals = [eps_search(poly, method, target) for method, _ in BENCHMARKS]
-    bench = [(method, eps, label)
-             for (method, label), eps in zip(BENCHMARKS, eps_vals)]
+    bench = [(method, eps, label) for (method, label), eps in zip(BENCHMARKS, eps_vals)]
     assert verify_bench(poly, bench, target)
 
     results = [
