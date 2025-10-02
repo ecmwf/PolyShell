@@ -101,8 +101,8 @@ extra_javascript:
 extra_css:
   - https://unpkg.com/katex@0/dist/katex.min.css
 
-repo_url: https://github.com/ECMWFCode4Earth/PolyShell
+repo_url: https://github.com/ecmwf/PolyShell
 repo_name: polyshell
 site_author: nialloswald
-site_url: https://ecmwfcode4earth.github.io/PolyShell/
+site_url: https://ecmwf.github.io/PolyShell/
 site_description: A high-performance coverage-preserving polygon reduction library for Python, written in Rust.
