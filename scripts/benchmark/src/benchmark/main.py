@@ -1,3 +1,25 @@
+#
+# Copyright 2025- European Centre for Medium-Range Weather Forecasts (ECMWF)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+#
+# Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
+#
+
 import pickle
 import timeit
 
@@ -51,7 +73,8 @@ def plot_bench(results: list[tuple[float, str]]) -> None:
             patch.set_y(patch.get_y() + diff * 0.5)
 
         ax.set_xticks([0.0, 0.05, 0.10, 0.15])
-        ax.xaxis.set_major_formatter(FuncFormatter(lambda t, p: f"{1000 * t:.0f}ms"))
+        ax.xaxis.set_major_formatter(
+            FuncFormatter(lambda t, p: f"{1000 * t:.0f}ms"))
 
         sns.despine(left=True, bottom=True)
         plt.tight_layout()
@@ -104,7 +127,8 @@ def main():
     target = 10570  # 90% reduction
 
     eps_vals = [eps_search(poly, method, target) for method, _ in BENCHMARKS]
-    bench = [(method, eps, label) for (method, label), eps in zip(BENCHMARKS, eps_vals)]
+    bench = [(method, eps, label)
+             for (method, label), eps in zip(BENCHMARKS, eps_vals)]
     assert verify_bench(poly, bench, target)
 
     results = [
