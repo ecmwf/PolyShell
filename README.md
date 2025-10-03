@@ -13,8 +13,8 @@ A high-performance coverage-preserving polygon reduction library for Python, wri
 <p align="center">
   <picture align="center">
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/Benchmark-Dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/ECMWFCode4Earth/PolyShell/refs/heads/main/docs/assets/Benchmark-Dark.svg">
-    <img alt="Shows a bar chart with benchmark results." src="https://raw.githubusercontent.com/ECMWFCode4Earth/PolyShell/refs/heads/main/docs/assets/Benchmark-Light.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/ecmwf/PolyShell/refs/heads/main/docs/assets/Benchmark-Dark.svg">
+    <img alt="Shows a bar chart with benchmark results." src="https://raw.githubusercontent.com/ecmwf/PolyShell/refs/heads/main/docs/assets/Benchmark-Light.svg">
   </picture>
 </p>
 
@@ -47,7 +47,7 @@ $ pip install polyshell
 ```
 
 PolyShell can also be built from source using [maturin](https://www.maturin.rs/). See the
-guide [here](https://ecmwfcode4earth.github.io/PolyShell/user-guide/installation/).
+guide [here](https://ecmwf.github.io/PolyShell/user-guide/installation/).
 
 ---
 
@@ -71,11 +71,11 @@ reduced = reduce_polygon(original, "auto", method="vw")
 ```
 
 For all the available options, see
-the [full list of features](https://ecmwfcode4earth.github.io/PolyShell/user-guide/features/).
+the [full list of features](https://ecmwf.github.io/PolyShell/user-guide/features/).
 
 ---
 
 ## Learn more
 
-For more information see the [guide](https://ecmwfcode4earth.github.io/PolyShell/user-guide/).
+For more information see the [guide](https://ecmwf.github.io/PolyShell/user-guide/).
 
