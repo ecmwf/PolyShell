@@ -50,6 +50,11 @@ docs = [
     "termynal>=0.13.1",
 ]
 
+cli = [
+    "matplotlib>=3.10.5",
+    "typer>=0.17.4",
+]
+
 [tool.maturin]
 python-source = "python"
 module-name = "polyshell._polyshell"
@@ -61,15 +66,10 @@ cache-keys = [{ file = "pyproject.toml" }, { file = "rust/Cargo.toml" }, { file 
 # Uncomment to build rust code in development mode
 # config-settings = { build-args = '--profile=dev' }
 
-[tool.uv.sources]
-benchmark = { workspace = true }
-cli = { workspace = true }
 
-[tool.uv.workspace]
-members = [
-    "scripts/benchmark",
-    "scripts/cli",
-]
+[project.scripts]
+    polyshell = "polyshell._cli:app"
+
 
 [tool.pytest.ini_options]
 testpaths = "tests"
