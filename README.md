@@ -1,14 +1,18 @@
 # PolyShell
 
-A high-performance coverage-preserving polygon reduction library for Python, written in Rust.
-
 <div align="center">
 
+[![Static Badge](https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE/foundation_badge.svg)](https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE)
+[![Static Badge](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity/emerging_badge.svg)](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity)
 ![PyPI - Version](https://img.shields.io/pypi/v/polyshell)
 ![Build Status](https://img.shields.io/github/actions/workflow/status/ECMWFCode4Earth/PolyShell/CI.yml)
 ![Docs Build Status](https://img.shields.io/github/actions/workflow/status/ECMWFCode4Earth/PolyShell/publish-docs.yml?label=docs)
-
 </div>
+
+A high-performance coverage-preserving polygon reduction library for Python, written in Rust.
+
+> \[!IMPORTANT\]
+> This software is **Emerging** and subject to ECMWF's guidelines on [Software Maturity](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity).
 
 <p align="center">
   <picture align="center">
@@ -21,6 +25,8 @@ A high-performance coverage-preserving polygon reduction library for Python, wri
 <p align="center">
   <i>Time to reduce a 50,000 point polygon by 90%.</i>
 </p>
+
+_This project was developed as part of ECMWF's Code4Earth initiative by Niall Oswald, Kenneth Martin and Jo Wayne Tan._
 
 ---
 
