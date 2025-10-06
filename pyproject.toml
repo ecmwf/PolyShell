@@ -6,32 +6,45 @@ build-backend = "maturin"
 name = "polyshell"
 requires-python = ">=3.10"
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering"
 ]
 authors = [
     { name = "Niall Oswald", email = "niall.oswald20@imperial.ac.uk" },
     { name = "Kenneth Martin", email = "k.martin24@imperial.ac.uk" },
     { name = "Jo Wayne Tan", email = "jo.tan17@imperial.ac.uk" },
 ]
+description = "A high-performance coverage-preserving polygon reduction library for Python, written in Rust"
+license = { text = "Apache License Version 2.0" }
 dynamic = ["version"]
-dependencies = []
+dependencies = ["numpy>=2.2.6", "shapely>=2.0.7"]
 
-[dependency-groups]
+[project.urls]
+    repository = "https://github.com/ecmwf/polyshell"
+    documentation = "https://ecmwf.github.io/PolyShell/"
+    issues = "https://github.com/ecmwf/polyshell/issues"
+
+[project.optional-dependencies]
 dev = [
-    { include-group = "tests" },
-    "benchmark",
-    "cli",
-    "maturin>=1.9.3",
+    "pytest>=8.3.5",
+    "pytest-cases>=3.9.1",
     "pre-commit"
 ]
 tests = [
     "pytest>=8.3.5",
     "pytest-cases>=3.9.1",
-    "shapely>=2.0.7",
-    "numpy>=2.2.6",
 ]
+
 docs = [
     "mkdocs-material>=9.6.15",
     "termynal>=0.13.1",
