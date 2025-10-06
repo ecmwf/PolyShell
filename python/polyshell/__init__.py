@@ -38,7 +38,6 @@ __all__ = [
     "reduce_polygon_eps",
     "reduce_polygon_len",
     "reduce_polygon_auto",
-    "is_clockwise",
 ]
 
 
