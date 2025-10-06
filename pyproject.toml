@@ -67,3 +67,11 @@ known-first-party = [
     "benchmark",
     "cli",
 ]
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.isort]
+profile = "black"  # Ensures compatibility with Black's formatting.
+
+[tool.black]
+skip-string-normalization = false

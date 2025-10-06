@@ -25,9 +25,8 @@ import timeit
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-from matplotlib.ticker import FuncFormatter
-
 from benchmark import BENCHMARKS
+from matplotlib.ticker import FuncFormatter
 
 LIGHT_MODE = True
 
