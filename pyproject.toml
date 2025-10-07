@@ -55,14 +55,15 @@ readers = [
     "shapely>=2.0.7",
 ]
 
-docs = [
-    "mkdocs-material>=9.6.15",
-    "termynal>=0.13.1",
-]
-
 cli = [
     "matplotlib>=3.10.5",
     "typer>=0.17.4",
+]
+
+[dependency-groups]
+docs = [
+    "mkdocs-material>=9.6.15",
+    "termynal>=0.13.1",
 ]
 
 [tool.maturin]
