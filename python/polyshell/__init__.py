@@ -26,6 +26,7 @@ from enum import Enum
 from typing import Literal, overload
 
 from polyshell._polyshell import (
+    __version__,
     reduce_polygon_char,
     reduce_polygon_rdp,
     reduce_polygon_vw,
@@ -38,6 +39,7 @@ __all__ = [
     "reduce_polygon_eps",
     "reduce_polygon_len",
     "reduce_polygon_auto",
+    "__version__",
 ]
 
 
