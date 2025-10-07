@@ -19,7 +19,7 @@ Install PolyShell using your package manager of choice:
     <!-- termynal -->
 
     ```
-    $ uv add polyshell 
+    $ uv add polyshell
     ```
 
 ---
@@ -70,8 +70,8 @@ process as seamless as possible.
 # Clone the PolyShell source
 $ git clone https://github.com/ECMWFCode4Earth/PolyShell.git
 $ cd PolyShell
-# Sync packages with uv 
-$ uv sync 
+# Sync packages with uv
+$ uv sync
 ```
 
 uv automatically detects changes to the source and recompiles when necessary.

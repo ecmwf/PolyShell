@@ -66,7 +66,7 @@ greater number of vertices.
 |-------------------------------------------------|--------|-----------------------------------------------------------------------------------------------------------|
 | [Visvalingam-Whyatt](#visvalingam-whyatt)       | Area   | The minimum area of the smallest triangle formed by a triple of connected vertices                        |
 | [Ramer-Douglas-Peucher](#ramer-douglas-peucker) | Length | The maximum distance between a string of vertices and the chord which connects the first and final points |
-| [Charshape](#charshape)                         | Length | The maximum line segment length along the boundary, provided a string of shorter segments exists          | 
+| [Charshape](#charshape)                         | Length | The maximum line segment length along the boundary, provided a string of shorter segments exists          |
 
 Epsilon reduction mode can be enabled for supported algorithms using the `reduction_mode` argument, providing tolerance
 in the third position or using the keyword argument `epsilon`:

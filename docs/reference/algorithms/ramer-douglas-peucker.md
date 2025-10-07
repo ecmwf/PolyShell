@@ -1,2 +1,1 @@
 # Ramer-Douglas-Peucker
-

@@ -84,4 +84,3 @@ the [full list of features](https://ecmwf.github.io/PolyShell/user-guide/feature
 ## Learn more
 
 For more information see the [guide](https://ecmwf.github.io/PolyShell/user-guide/).
-
