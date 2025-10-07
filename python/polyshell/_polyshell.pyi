@@ -22,7 +22,12 @@
 
 from collections.abc import Sequence
 
-__all__ = ["reduce_polygon_char", "reduce_polygon_rdp", "reduce_polygon_rdp"]
+__all__ = [
+    "reduce_polygon_char",
+    "reduce_polygon_rdp",
+    "reduce_polygon_rdp",
+    "is_valid",
+]
 
 SupportsIntoVec = Sequence[tuple[float, float]]
 
