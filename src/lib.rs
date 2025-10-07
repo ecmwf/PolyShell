@@ -136,5 +136,7 @@ fn _polyshell(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     m.add_function(wrap_pyfunction!(is_valid, m)?)?;
 
+    m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+
     Ok(())
 }
