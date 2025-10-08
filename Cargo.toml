@@ -8,6 +8,9 @@ edition = "2021"
 name = "polyshell"
 crate-type = ["cdylib"]
 
+[package.metadata.maturin]
+version-from-git = true
+
 [dependencies]
 geo = "0.31.0"
 hashbrown = "0.15.5"
