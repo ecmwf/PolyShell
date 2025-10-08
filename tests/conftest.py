@@ -32,3 +32,11 @@ def simplified(
     polygon: list[tuple[float, float]], method: ReductionMethod
 ) -> list[tuple[float, float]]:
     return reduce_polygon(polygon, ReductionMode.EPSILON, 1e-6, method)
+
+
+@fixture(scope="class")
+@parametrize_with_cases("method", cases=".method_cases", scope="class")
+def simplified_len(
+    polygon: list[tuple[float, float]], method: ReductionMethod
+) -> list[tuple[float, float]]:
+    return reduce_polygon(polygon, ReductionMode.LENGTH, 100, method)

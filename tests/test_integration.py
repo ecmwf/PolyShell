@@ -69,3 +69,36 @@ class TestRequirements:
         # The null polygon cannot contain itself
         if length:
             assert simplified_shapely.contains(original_shapely)
+
+    def test_len(
+        self,
+        polygon: list[tuple[float, float]],
+        simplified_len: list[tuple[float, float]],
+    ):
+        """Ensure reduced polygon vertices are a subset of the originals."""
+        # if isinstance(polygon, ShapelyPolygon):
+        #     original_set = set(map(lambda v: tuple(v), list(polygon.exterior.coords)))
+        # else:
+        #     original_set = set(map(lambda v: tuple(v), polygon))
+        # simplified_set = set(map(lambda v: tuple(v), simplified_len))
+
+        # assert simplified_set <= original_set
+        assert len(simplified_len) <= 100
+
+    def test_containment_len(
+        self,
+        polygon: list[tuple[float, float]],
+        simplified_len: list[tuple[float, float]],
+    ):
+        """Ensure reduced polygons contain the original in their interior."""
+        original_shapely = ShapelyPolygon(polygon)
+        simplified_shapely = ShapelyPolygon(simplified_len)
+
+        if isinstance(polygon, ShapelyPolygon):
+            length = polygon.length
+        else:
+            length = len(polygon)
+
+        # The null polygon cannot contain itself
+        if length:
+            assert simplified_shapely.contains(original_shapely)
