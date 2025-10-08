@@ -6,10 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "polyshell"
-crate-type = ["cdylib", "rlib"]
-
-[package.metadata.maturin]
-version-from-git = true
+crate-type = ["cdylib"]
 
 [dependencies]
 geo = "0.31.0"
