@@ -170,7 +170,6 @@ fn recompute_boundary<'a, T>(
 ) where
     T: GeoFloat + SpadeNum,
 {
-    //
     let choices = [edge.prev(), edge.next()];
     for new_edge in choices {
         let e = CharScore {

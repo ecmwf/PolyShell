@@ -18,170 +18,116 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
-use geo::{coord, Coord, GeoFloat, GeoNum, Kernel, Orientation};
-use std::ops::Sub;
+use geo::{Coord, GeoNum, Kernel, Orientation};
+use spade::handles::DirectedEdgeHandle;
+use spade::{CdtEdge, Point2, SpadeNum};
 
-fn left_visibility_polygon<T: GeoNum>(
-    mut points_iter: impl Iterator<Item = (usize, Coord<T>)>,
-) -> Vec<(usize, Coord<T>)> {
-    let first: (usize, Coord<T>) = points_iter.next().unwrap();
-    let second = points_iter.next().unwrap();
-    let mut stack = Vec::from([first, second]);
-
-    while let Some(v) = points_iter.next() {
-        if let Some(v) = if matches!(
-            T::Ker::orient2d(first.1, stack.last().unwrap().1, v.1),
-            Orientation::CounterClockwise
-        ) {
-            // Line extends visible region
-            Some(v)
-        } else if matches!(
-            T::Ker::orient2d(
-                stack.get(stack.len().sub(2)).unwrap().1,
-                stack.last().unwrap().1,
-                v.1
-            ),
-            Orientation::CounterClockwise
-        ) {
-            // Line lies inside the visible region (blocking)
-            reduce(v, first, &mut stack) // Drop all shadowed points
-        } else {
-            // Line lies outside the visible region (shadowed)
-            skip(first, *stack.last().unwrap(), &mut points_iter) // Iterate until visible
-        } {
-            stack.push(v);
-        }
-    }
-    stack
-}
-
-fn reduce<T: GeoNum>(
-    v: (usize, Coord<T>),
-    first: (usize, Coord<T>),
-    stack: &mut Vec<(usize, Coord<T>)>,
-) -> Option<(usize, Coord<T>)> {
-    let x = stack.pop().unwrap();
-    while matches!(
-        T::Ker::orient2d(first.1, v.1, stack.last().unwrap().1),
-        Orientation::CounterClockwise
-    ) && matches!(
-        T::Ker::orient2d(x.1, v.1, stack.last().unwrap().1),
-        Orientation::CounterClockwise
-    ) {
-        stack.pop();
-    }
-
-    if matches!(
-        T::Ker::orient2d(first.1, stack.last().unwrap().1, v.1),
-        Orientation::CounterClockwise
-    ) {
-        Some(v)
-    } else {
-        None
-    }
-}
-
-fn skip<T: GeoNum>(
-    first: (usize, Coord<T>),
-    last: (usize, Coord<T>),
-    points_iter: &mut impl Iterator<Item = (usize, Coord<T>)>,
-) -> Option<(usize, Coord<T>)> {
-    points_iter.find(|&v| {
-        matches!(
-            T::Ker::orient2d(first.1, last.1, v.1),
-            Orientation::CounterClockwise
-        )
-    })
-}
-
-fn merge_walk<S, T>(x: Vec<(S, T)>, y: Vec<(S, T)>) -> Vec<(S, T)>
-where
-    S: PartialOrd + PartialEq,
+/// Take a given window (left, right) on an edge e and recurse on the visible edges
+fn visit_edge<'a, T>(
+    source: Point2<T>,
+    edge: DirectedEdgeHandle<'a, Point2<T>, (), CdtEdge<()>, ()>,
+    left: Point2<T>,
+    right: Point2<T>,
+) where
+    T: GeoNum + SpadeNum,
 {
-    let x_iter = x.into_iter();
-    let mut y_iter = y.into_iter();
+    for edge in [edge.prev(), edge.next()] {
+        let from = edge.from().index();
+        let to = edge.to().index();
 
-    let mut intersection = Vec::new();
-    let Some(mut other) = y_iter.next() else {
-        return intersection;
-    };
-
-    for item in x_iter {
-        while item.0 > other.0 {
-            other = match y_iter.next() {
-                Some(other) => other,
-                None => return intersection,
-            };
+        if from == to + 1 || to == from + 1 {
+            // Edge lies on the boundary, and thus blocks vision
+            println!("Found edge {:?}", edge.positions());
+            continue;
         }
-        if item.0 == other.0 {
-            intersection.push(item);
+
+        // Update horizons
+        let new_left = if matches!(
+            orient2d(source, left, edge.to().position()),
+            Orientation::CounterClockwise,
+        ) {
+            // Vision is restricte dy the new edge
+            edge.to().position()
+        } else {
+            // TODO: left may still need to be updated
+            left
+        };
+        let new_right = if matches!(
+            orient2d(source, right, edge.from().position()),
+            Orientation::Clockwise,
+        ) {
+            // Vision is restricted by the new edge
+            edge.from().position()
+        } else {
+            // TODO: right may still need to be updated
+            right
+        };
+
+        if matches!(orient2d(source, left, right), Orientation::Clockwise,) {
+            visit_edge(source, edge.rev(), new_left, new_right)
         }
     }
-    intersection
 }
 
-fn reverse_coords<T: GeoFloat>(
-    ls: impl DoubleEndedIterator<Item = (usize, Coord<T>)>,
-) -> impl Iterator<Item = (usize, Coord<T>)> {
-    ls.into_iter().rev().map(|v| {
-        let (x, y) = v.1.x_y();
-        (v.0, coord! {x: -x, y: y})
-    })
+fn orient2d<T: GeoNum>(x: Point2<T>, y: Point2<T>, z: Point2<T>) -> Orientation {
+    let points = [x, y, z];
+    let [x, y, z] = points.map(|p| Coord { x: p.x, y: p.y });
+    T::Ker::orient2d(x, y, z)
 }
 
-pub fn visiblity_polygon<T: GeoFloat>(ls: &[Coord<T>]) -> Vec<(usize, Coord<T>)> {
-    let iter = ls.iter().copied().enumerate();
-    let left = left_visibility_polygon(iter);
-
-    let rev_iter = reverse_coords(ls.iter().copied().enumerate());
-    let rev_right = left_visibility_polygon(rev_iter);
-    let right = reverse_coords(rev_right.into_iter()).collect::<Vec<_>>();
-    merge_walk(left, right)
+pub fn visibility_polygon<T: GeoNum>(ls: &[Coord<T>]) -> Vec<(usize, Coord<T>)> {
+    vec![]
 }
 
 #[cfg(test)]
-mod tests {
-    use super::visiblity_polygon;
-    use geo::coord;
+mod test {
+    use geo::{polygon, CoordsIter};
+    use spade::{ConstrainedDelaunayTriangulation, Point2, Triangulation};
+
+    use crate::algorithms::visibility::visit_edge;
 
     #[test]
-    fn visibility_test() {
-        let ls = vec![
-            coord! { x: 0.0, y: 0.0 },
-            coord! { x: 0.0, y: -1.0 },
-            coord! { x: -2.0, y: -1.0 },
-            coord! { x: -2.0, y: -3.0 },
-            coord! { x: 2.0, y: -3.0 },
-            coord! { x: 2.0, y: -2.0 },
-            coord! { x: -1.0, y: -2.0 },
-            coord! { x: 2.0, y: -1.0 },
-            coord! { x: 2.0, y: 0.0 },
+    fn snail_test() {
+        let poly = polygon![
+            (x: 0.0, y: 0.0),
+            (x: 0.0, y: -2.0),
+            (x: -2.0, y: -2.0),
+            (x: -2.0, y: -1.0),
+            (x: -1.0, y: -1.0),
+            (x: -3.0, y: 0.0),
+            (x: -3.0, y: -3.0),
+            (x: 0.0, y: -3.0),
+            (x: 3.0, y: -3.0),
+            (x: 3.0, y: 0.0),
         ];
-        let correct = vec![
-            (0, coord! { x: 0.0, y: 0.0 }),
-            (1, coord! { x: 0.0, y: -1.0 }),
-            (7, coord! { x: 2.0, y: -1.0 }),
-            (8, coord! { x: 2.0, y: 0.0 }),
-        ];
-        assert_eq!(visiblity_polygon(&ls), correct);
-    }
+        let vertices = poly
+            .exterior_coords_iter()
+            .take(poly.exterior().0.len() - 1) // duplicate points are removed
+            .map(|c| Point2::new(c.x, c.y))
+            .collect::<Vec<_>>();
 
-    #[test]
-    fn collinear_test() {
-        let ls = vec![
-            coord! { x: 0.0, y: 0.0 },
-            coord! { x: 1.0, y: -2.0 },
-            coord! { x: 2.0, y: 0.0 },
-            coord! { x: 3.0, y: 0.0 },
-            coord! { x: 4.0, y: -2.0 },
-            coord! { x: 5.0, y: 0.0 },
-        ];
-        let correct = vec![
-            (0, coord! { x: 0.0, y: 0.0 }),
-            (2, coord! { x: 2.0, y: 0.0 }),
-            (3, coord! { x: 3.0, y: 0.0 }),
-            (5, coord! { x: 5.0, y: 0.0 }),
-        ];
-        assert_eq!(visiblity_polygon(&ls), correct);
+        let edges = (0..poly.exterior().0.len() - 2)
+            .map(|i| {
+                if i == 0 {
+                    [vertices.len() - 1, i]
+                } else {
+                    [i, i + 1]
+                }
+            })
+            .collect::<Vec<_>>();
+
+        let cdt =
+            ConstrainedDelaunayTriangulation::<Point2<_>>::bulk_load_cdt(vertices, edges).unwrap();
+
+        // Pick any point
+        let source = Point2::new(1.0, 1.0);
+
+        // Get any starting edge
+        let edge = cdt.vertices().next().unwrap().out_edge().unwrap();
+        println!("Initial edge: {:?}", edge.positions());
+
+        visit_edge(source, edge, edge.from().position(), edge.to().position());
+
+        panic!();
     }
 }

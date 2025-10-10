@@ -18,7 +18,7 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
-use crate::algorithms::visibility::visiblity_polygon;
+use crate::algorithms::visibility::visibility_polygon;
 use crate::extensions::segments::{FromSegments, HullSegments};
 use geo::{Coord, Distance, Euclidean, GeoFloat, Line, LineString, Polygon};
 use rayon::prelude::*;
@@ -34,7 +34,7 @@ where
         &[first, .., last] => (first, last),
     };
 
-    let visible = visiblity_polygon(ls);
+    let visible = visibility_polygon(ls);
     let chord = Line::new(first, last);
 
     let split_index = visible
