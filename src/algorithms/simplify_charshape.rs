@@ -143,8 +143,7 @@ where
             continue;
         }
 
-        let [from, to] = largest.edge.vertices().map(|v| v.index());
-        if (to == from + 1) || (from == to + 1) || (to + from + 2 == orig_len) {
+        if largest.edge.is_constraint_edge() {
             continue;
         }
 
