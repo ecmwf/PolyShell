@@ -1,0 +1,90 @@
+name: Auto Release (Rust + Python)
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tools
+        run: |
+          pip install tomlkit semver
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Get current version
+        id: get_version
+        run: |
+          current=$(grep '^version' Cargo.toml | head -n 1 | sed 's/version = "\(.*\)"/\1/')
+          echo "current=$current" >> $GITHUB_OUTPUT
+          echo "Current version: $current"
+
+      - name: Bump version
+        id: bump
+        run: |
+          current=${{ steps.get_version.outputs.current }}
+          bump_type=${{ github.event.inputs.bump || 'patch' }}
+          new=$(python -c "import semver; print(semver.VersionInfo.parse('$current').bump_$bump_type())")
+          echo "new=$new" >> $GITHUB_OUTPUT
+          echo "Bumped version: $new"
+
+      - name: Update Cargo.toml
+        run: |
+          version=${{ steps.bump.outputs.new }}
+          sed -i "s/^version = \".*\"/version = \"$version\"/" Cargo.toml
+
+      - name: Sync version to pyproject.toml
+        run: |
+          version=${{ steps.bump.outputs.new }}
+          python - <<EOF
+          import tomlkit
+          p = tomlkit.parse(open('pyproject.toml').read())
+          if 'project' in p:
+              p['project']['version'] = version
+          elif 'tool' in p and 'poetry' in p['tool']:
+              p['tool']['poetry']['version'] = version
+          open('pyproject.toml', 'w').write(tomlkit.dumps(p))
+          EOF
+
+      - name: Commit and tag version
+        run: |
+          version=${{ steps.bump.outputs.new }}
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add Cargo.toml pyproject.toml
+          git commit -m "chore(release): bump version to $version" || echo "No changes"
+          git tag "v$version"
+          git push origin HEAD:main
+          git push origin "v$version"
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      # - name: Publish to crates.io
+      #   run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
