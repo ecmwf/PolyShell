@@ -18,11 +18,6 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
       - name: Install tools
         run: |
           cargo install cargo-set-version
@@ -37,6 +32,8 @@ jobs:
             BRANCH="${GITHUB_REF_NAME}"
           fi
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "Detected branch: $BRANCH"
+          BRANCH=$(git branch --show-current)
           echo "Detected branch: $BRANCH"
 
       - name: Extract version from tag
