@@ -54,6 +54,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH="${{ github.event.release.target_commitish }}"
           git add Cargo.toml
           git commit -m "chore: set release version v${{ steps.version.outputs.version }}"
           git push origin HEAD:$BRANCH
