@@ -1,9 +1,8 @@
 name: Release via GitHub Tag (with dev versions)
 
 on:
-  push:
-    tags:
-      - "**"
+  release:
+    types: [published]
 
 jobs:
   publish:
