@@ -26,6 +26,7 @@ jobs:
       - name: Install tools
         run: |
           cargo install cargo-release --locked
+          cargo install cargo-set-version
           pip install maturin tomlkit semver
 
       - name: Extract version from tag
