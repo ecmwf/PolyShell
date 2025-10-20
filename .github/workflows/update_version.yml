@@ -1,90 +1,59 @@
-name: Auto Release (Rust + Python)
+name: Release via GitHub Tag (with dev versions)
 
 on:
-  workflow_dispatch:
-    inputs:
-      bump:
-        description: "Version bump type"
-        required: true
-        default: "patch"
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-
   push:
-    branches: [main, develop]
-
-permissions:
-  contents: write
-  id-token: write
+    tags:
+      - "**"
 
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set up Python
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install tools
         run: |
-          pip install tomlkit semver
-          sudo apt-get update && sudo apt-get install -y jq
+          cargo install cargo-release --locked
+          pip install maturin tomlkit semver
 
-      - name: Get current version
-        id: get_version
+      - name: Extract version from tag
+        id: version
         run: |
-          current=$(grep '^version' Cargo.toml | head -n 1 | sed 's/version = "\(.*\)"/\1/')
-          echo "current=$current" >> $GITHUB_OUTPUT
-          echo "Current version: $current"
+          TAG=${GITHUB_REF_NAME}
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
 
-      - name: Bump version
-        id: bump
+      - name: Set release version
         run: |
-          current=${{ steps.get_version.outputs.current }}
-          bump_type=${{ github.event.inputs.bump || 'patch' }}
-          new=$(python -c "import semver; print(semver.VersionInfo.parse('$current').bump_$bump_type())")
-          echo "new=$new" >> $GITHUB_OUTPUT
-          echo "Bumped version: $new"
-
-      - name: Update Cargo.toml
-        run: |
-          version=${{ steps.bump.outputs.new }}
-          sed -i "s/^version = \".*\"/version = \"$version\"/" Cargo.toml
-
-      - name: Sync version to pyproject.toml
-        run: |
-          version=${{ steps.bump.outputs.new }}
-          python - <<EOF
+          VERSION=${{ steps.version.outputs.version }}
+          echo "Setting release version $VERSION"
+          cargo set-version $VERSION
+          python - <<'PYCODE'
           import tomlkit
-          p = tomlkit.parse(open('pyproject.toml').read())
-          if 'project' in p:
-              p['project']['version'] = version
-          elif 'tool' in p and 'poetry' in p['tool']:
-              p['tool']['poetry']['version'] = version
-          open('pyproject.toml', 'w').write(tomlkit.dumps(p))
-          EOF
+          from pathlib import Path
+          path = Path("pyproject.toml")
+          data = tomlkit.parse(path.read_text())
+          data["project"]["version"] = "${{ steps.version.outputs.version }}"
+          path.write_text(tomlkit.dumps(data))
+          PYCODE
 
-      - name: Commit and tag version
+      - name: Commit release version bump
         run: |
-          version=${{ steps.bump.outputs.new }}
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Cargo.toml pyproject.toml
-          git commit -m "chore(release): bump version to $version" || echo "No changes"
-          git tag "v$version"
+          git commit -m "chore: set release version v${{ steps.version.outputs.version }}"
           git push origin HEAD:main
-          git push origin "v$version"
-
-      # - name: Publish to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-
-      # - name: Publish to crates.io
-      #   run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
