@@ -21,21 +21,6 @@ jobs:
         run: |
           cargo install cargo-set-version
 
-      - name: Detect current branch
-        id: branch
-        run: |
-          if [ -n "${GITHUB_HEAD_REF}" ]; then
-            BRANCH="${GITHUB_HEAD_REF}"
-          else
-            # For releases or tags
-            BRANCH="${GITHUB_REF_NAME}"
-          fi
-          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
-          echo "Detected branch: $BRANCH"
-          BRANCH=$(git branch --show-current)
-          BRANCH="${{ github.event.release.target_commitish }}"
-          echo "Detected branch: $BRANCH"
-
       - name: Extract version from tag
         id: version
         run: |
@@ -58,3 +43,9 @@ jobs:
           git add Cargo.toml
           git commit -m "chore: set release version v${{ steps.version.outputs.version }}"
           git push origin HEAD:$BRANCH
+
+      - name: Move release tag to new commit
+        run: |
+          TAG=${{ github.event.release.tag_name }}
+          git tag -fa "$TAG" -m "Release $TAG (after version bump)"
+          git push origin "$TAG" --force
