@@ -41,14 +41,6 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
           echo "Setting release version $VERSION"
           cargo set-version $VERSION
-          python - <<'PYCODE'
-          import tomlkit
-          from pathlib import Path
-          path = Path("pyproject.toml")
-          data = tomlkit.parse(path.read_text())
-          data["project"]["version"] = "${{ steps.version.outputs.version }}"
-          path.write_text(tomlkit.dumps(data))
-          PYCODE
 
       - name: Commit release version bump
         run: |
