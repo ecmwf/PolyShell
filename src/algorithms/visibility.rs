@@ -184,4 +184,39 @@ mod tests {
         ];
         assert_eq!(visiblity_polygon(&ls), correct);
     }
+
+    #[test]
+    fn pan_handle_test() {
+        let poly = polygon![
+            (x: -1.0, y: 0.0),
+            (x: 0.0, y: 0.0),
+            (x: 0.0, y: -1.0),
+            (x: 1.0, y: -1.0),
+            (x: 1.0, y: 0.0),
+            (x: 2.0, y: 0.0),
+            (x: 3.0, y: 1.0),
+            (x: 3.0, y: -2.0),
+            (x: -2.0, y: -2.0),
+            (x: -2.0, y: 1.0),
+        ];
+
+        let cdt = triangulate_polygon(poly);
+
+        let from = {
+            let handle = FixedVertexHandle::from_index(0);
+            cdt.get_vertex(handle).unwrap()
+        };
+        let to = {
+            let handle = FixedVertexHandle::from_index(5);
+            cdt.get_vertex(handle).unwrap()
+        };
+
+        let vis = visibility_intersection(from, to, &cdt)
+            .into_iter()
+            .map(|v| v.index())
+            .collect::<Vec<_>>();
+        let correct = vec![0, 1, 4, 5];
+
+        assert_eq!(vis, correct);
+    }
 }
