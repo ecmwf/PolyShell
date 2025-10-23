@@ -4,7 +4,7 @@
 
 [![Static Badge](https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE/foundation_badge.svg)](https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE)
 [![Static Badge](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity/emerging_badge.svg)](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity)
-![PyPI - Version](https://img.shields.io/pypi/v/polyshell)
+[![PyPI - Version](https://img.shields.io/pypi/v/polyshell)](https://pypi.org/project/polyshell/)
 ![Build Status](https://img.shields.io/github/actions/workflow/status/ECMWFCode4Earth/PolyShell/CI.yml)
 ![Docs Build Status](https://img.shields.io/github/actions/workflow/status/ECMWFCode4Earth/PolyShell/publish-docs.yml?label=docs)
 </div>
