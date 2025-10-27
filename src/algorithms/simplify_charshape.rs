@@ -18,14 +18,13 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
+use crate::extensions::conversions::IntoCoord;
 use crate::extensions::triangulate::Triangulate;
-use geo::{Coord, GeoFloat, LineString, Polygon};
-use hashbrown::HashSet;
-use spade::handles::{DirectedEdgeHandle, VertexHandle};
+use geo::{GeoFloat, Polygon};
+use spade::handles::DirectedEdgeHandle;
 use spade::{CdtEdge, Point2, SpadeNum, Triangulation};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
-use std::hash::Hash;
 
 #[derive(Debug)]
 struct CharScore<'a, T>
@@ -57,38 +56,6 @@ impl<T: SpadeNum> PartialEq for CharScore<'_, T> {
     }
 }
 
-#[derive(Debug)]
-struct BoundaryNode<'a, T>(VertexHandle<'a, Point2<T>, (), CdtEdge<()>>);
-
-impl<T> PartialEq for BoundaryNode<'_, T> {
-    fn eq(&self, other: &BoundaryNode<T>) -> bool {
-        self.0.index() == other.0.index()
-    }
-}
-
-impl<T> Eq for BoundaryNode<'_, T> {}
-
-impl<T> Hash for BoundaryNode<'_, T>
-where
-    T: SpadeNum,
-{
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.0.index().hash(state);
-    }
-}
-
-impl<T> Ord for BoundaryNode<'_, T> {
-    fn cmp(&self, other: &BoundaryNode<T>) -> Ordering {
-        self.0.index().partial_cmp(&other.0.index()).unwrap()
-    }
-}
-
-impl<T> PartialOrd for BoundaryNode<'_, T> {
-    fn partial_cmp(&self, other: &BoundaryNode<T>) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
 fn characteristic_shape<T>(orig: &Polygon<T>, eps: T, max_len: usize) -> Polygon<T>
 where
     T: GeoFloat + SpadeNum,
@@ -100,13 +67,15 @@ where
     let eps_2 = eps * eps;
 
     let tri = orig.triangulate();
-    let boundary_edges = tri.convex_hull().map(|edge| edge.rev()).collect::<Vec<_>>();
-    let mut boundary_nodes: HashSet<_> =
-        HashSet::from_iter(boundary_edges.iter().map(|&edge| BoundaryNode(edge.from())));
+    let mut boundary_nodes = tri
+        .convex_hull()
+        .map(|edge| edge.from())
+        .collect::<BinaryHeap<_>>();
 
-    let mut pq = boundary_edges
-        .iter()
-        .map(|&line| CharScore {
+    let mut pq = tri
+        .convex_hull()
+        .map(|edge| edge.rev())
+        .map(|line| CharScore {
             score: line.length_2(),
             edge: line,
         })
@@ -118,28 +87,22 @@ where
         }
 
         // Regularity check
-        let coprime_node = BoundaryNode(largest.edge.opposite_vertex().unwrap());
-        if boundary_nodes.contains(&coprime_node) {
-            continue;
-        }
-
         if largest.edge.is_constraint_edge() {
             continue;
         }
 
         // Update boundary nodes and edges
-        boundary_nodes.insert(coprime_node);
+        let coprime_node = largest.edge.opposite_vertex().unwrap();
+        boundary_nodes.push(coprime_node);
         recompute_boundary(largest.edge, &mut pq);
     }
 
     // Extract boundary nodes
-    let mut boundary_nodes = boundary_nodes.drain().collect::<Vec<_>>();
-    boundary_nodes.sort();
-
-    let exterior = LineString::from_iter(boundary_nodes.into_iter().map(|n| {
-        let p = n.0.position();
-        Coord { x: p.x, y: p.y }
-    }));
+    let exterior = boundary_nodes
+        .into_sorted_vec()
+        .into_iter()
+        .map(|v| v.position().into_coord())
+        .collect();
     Polygon::new(exterior, vec![])
 }
 
