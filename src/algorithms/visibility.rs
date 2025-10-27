@@ -189,33 +189,11 @@ fn binary_heap_intersection<T: Ord>(mut x: BinaryHeap<T>, mut y: BinaryHeap<T>) 
 #[cfg(test)]
 mod test {
     use crate::algorithms::visibility::{visibility_intersection, visit_edge};
-    use geo::{polygon, CoordsIter, GeoNum, Polygon};
+    use crate::extensions::triangulate::Triangulate;
+    use geo::polygon;
     use spade::handles::FixedVertexHandle;
-    use spade::{ConstrainedDelaunayTriangulation, Point2, SpadeNum, Triangulation};
+    use spade::{Point2, Triangulation};
     use std::collections::BinaryHeap;
-
-    fn triangulate_polygon<T: GeoNum + SpadeNum>(
-        poly: Polygon<T>,
-    ) -> ConstrainedDelaunayTriangulation<Point2<T>> {
-        let num_vertices = poly.exterior().0.len() - 1;
-
-        let vertices = poly
-            .exterior_coords_iter()
-            .take(num_vertices) // duplicate points are removed
-            .map(|c| Point2::new(c.x, c.y))
-            .collect::<Vec<_>>();
-        let edges = (0..num_vertices)
-            .map(|i| {
-                if i == 0 {
-                    [num_vertices - 1, i]
-                } else {
-                    [i - 1, i]
-                }
-            })
-            .collect::<Vec<_>>();
-
-        ConstrainedDelaunayTriangulation::<Point2<_>>::bulk_load_cdt(vertices, edges).unwrap()
-    }
 
     #[test]
     fn collinear_test() {
@@ -226,7 +204,7 @@ mod test {
             (x: 0.0, y: 0.0),
         ];
 
-        let cdt = triangulate_polygon(poly);
+        let cdt = poly.triangulate();
 
         let from = {
             let handle = FixedVertexHandle::from_index(0);
@@ -262,7 +240,7 @@ mod test {
             (x: 0.0, y: 0.0),
         ];
 
-        let cdt = triangulate_polygon(poly);
+        let cdt = poly.triangulate();
 
         let from = {
             let handle = FixedVertexHandle::from_index(0);
@@ -294,7 +272,7 @@ mod test {
             (x: 0.0, y: 0.0),
         ];
 
-        let cdt = triangulate_polygon(poly);
+        let cdt = poly.triangulate();
 
         let from = {
             let handle = FixedVertexHandle::from_index(0);
@@ -331,7 +309,7 @@ mod test {
             (x: -1.0, y: 0.0),
         ];
 
-        let cdt = triangulate_polygon(poly);
+        let cdt = poly.triangulate();
 
         let source = Point2::new(1.0, 1.0);
         let edge = {
@@ -371,7 +349,7 @@ mod test {
             (x: -4.0, y: 0.0),
         ];
 
-        let cdt = triangulate_polygon(poly);
+        let cdt = poly.triangulate();
 
         let from = {
             let handle = FixedVertexHandle::from_index(0);
@@ -406,7 +384,7 @@ mod test {
             (x: -2.0, y: 1.0),
         ];
 
-        let cdt = triangulate_polygon(poly);
+        let cdt = poly.triangulate();
 
         let from = {
             let handle = FixedVertexHandle::from_index(0);
