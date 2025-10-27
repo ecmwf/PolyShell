@@ -19,9 +19,10 @@
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
 use crate::algorithms::visibility::visibility_intersection;
+use crate::extensions::conversions::IntoCoord;
 use crate::extensions::segments::FromSegments;
 use crate::extensions::triangulate::Triangulate;
-use geo::{Coord, Distance, Euclidean, GeoFloat, Line, LineString, Polygon};
+use geo::{Distance, Euclidean, GeoFloat, Line, LineString, Polygon};
 use rayon::prelude::*;
 use spade::handles::{FixedVertexHandle, VertexHandle};
 use spade::{CdtEdge, ConstrainedDelaunayTriangulation, Point2, SpadeNum, Triangulation};
@@ -80,13 +81,13 @@ where
     }
 
     let chord = {
-        let [from, to] = [from, to].map(|v| to_coord(v.position()));
+        let [from, to] = [from, to].map(|v| v.position().into_coord());
         Line::new(from, to)
     };
 
     let farthest_distance =
         CircularIterator::new(from, to, cdt).fold(T::zero(), |farthest_distance, v| {
-            let distance = Euclidean.distance(to_coord(v.position()), &chord);
+            let distance = Euclidean.distance(v.position().into_coord(), &chord);
             if distance > farthest_distance {
                 distance
             } else {
@@ -104,7 +105,7 @@ where
         .fold(
             (from, -T::one()), // Placeholder, should always be overwritten
             |(farthest_vertex, farthest_distance), v| {
-                let distance = Euclidean.distance(to_coord(v.position()), &chord);
+                let distance = Euclidean.distance(v.position().into_coord(), &chord);
                 if distance > farthest_distance {
                     (v, distance)
                 } else {
@@ -137,10 +138,6 @@ where
     left
 }
 
-fn to_coord<T: GeoFloat>(v: Point2<T>) -> Coord<T> {
-    Coord { x: v.x, y: v.y }
-}
-
 pub trait SimplifyRDP<T, Epsilon = T> {
     fn simplify_rdp(&self, eps: Epsilon) -> Self;
 }
@@ -154,8 +151,12 @@ where
 
         let segments = cdt
             .convex_hull()
-            .map(|edge| rdp_preserve(edge.from(), edge.to(), &cdt, eps))
-            .map(|ls| LineString::new(ls.into_iter().map(|p| to_coord(p)).collect()))
+            .map(|edge| {
+                rdp_preserve(edge.from(), edge.to(), &cdt, eps)
+                    .into_iter()
+                    .map(|point| point.into_coord())
+                    .collect::<LineString<_>>()
+            })
             .collect();
 
         Polygon::from_segments(segments)

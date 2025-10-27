@@ -18,7 +18,8 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
-use geo::{Coord, GeoNum, Kernel, Orientation};
+use crate::extensions::conversions::IntoCoord;
+use geo::{GeoNum, Kernel, Orientation};
 use spade::handles::{DirectedEdgeHandle, FixedVertexHandle, VertexHandle};
 use spade::{CdtEdge, ConstrainedDelaunayTriangulation, Point2, SpadeNum, Triangulation};
 use std::collections::BinaryHeap;
@@ -41,10 +42,18 @@ fn visit_edge<'a, T>(
     let coprime = edge.opposite_vertex().unwrap();
     // TODO: Replace with LineSideInfo
     if matches!(
-        orient2d(source, left.position(), coprime.position()),
+        T::Ker::orient2d(
+            source.into_coord(),
+            left.position().into_coord(),
+            coprime.position().into_coord()
+        ),
         Orientation::Clockwise | Orientation::Collinear
     ) && matches!(
-        orient2d(source, right.position(), coprime.position()),
+        T::Ker::orient2d(
+            source.into_coord(),
+            right.position().into_coord(),
+            coprime.position().into_coord()
+        ),
         Orientation::CounterClockwise | Orientation::Collinear
     ) {
         visible.push(coprime);
@@ -54,7 +63,11 @@ fn visit_edge<'a, T>(
     for edge in [edge.prev(), edge.next()] {
         // Update horizons
         let new_left = if matches!(
-            orient2d(source, left.position(), edge.to().position()),
+            T::Ker::orient2d(
+                source.into_coord(),
+                left.position().into_coord(),
+                edge.to().position().into_coord()
+            ),
             Orientation::CounterClockwise,
         ) {
             // Vision is restricted by the new edge
@@ -64,7 +77,11 @@ fn visit_edge<'a, T>(
         };
 
         let new_right = if matches!(
-            orient2d(source, right.position(), edge.from().position()),
+            T::Ker::orient2d(
+                source.into_coord(),
+                right.position().into_coord(),
+                edge.from().position().into_coord()
+            ),
             Orientation::Clockwise,
         ) {
             // Vision is restricted by the new edge
@@ -74,7 +91,11 @@ fn visit_edge<'a, T>(
         };
 
         if matches!(
-            orient2d(source, new_left.position(), new_right.position()),
+            T::Ker::orient2d(
+                source.into_coord(),
+                new_left.position().into_coord(),
+                new_right.position().into_coord()
+            ),
             Orientation::CounterClockwise
         ) {
             // Left and right have changed side: this edge is not visible
@@ -83,12 +104,6 @@ fn visit_edge<'a, T>(
 
         visit_edge(source, edge.rev(), new_left, new_right, visible);
     }
-}
-
-fn orient2d<T: GeoNum>(x: Point2<T>, y: Point2<T>, z: Point2<T>) -> Orientation {
-    let points = [x, y, z];
-    let [x, y, z] = points.map(|p| Coord { x: p.x, y: p.y });
-    T::Ker::orient2d(x, y, z)
 }
 
 fn visibility_vertex<T: GeoNum + SpadeNum>(
