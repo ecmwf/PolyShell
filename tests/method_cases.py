@@ -29,7 +29,6 @@ def case_char() -> ReductionMethod:
     return ReductionMethod.CHARSHAPE
 
 
-@case(marks=pytest.mark.xfail(reason="Known bug"))
 def case_rdp() -> ReductionMethod:
     return ReductionMethod.RDP
 
