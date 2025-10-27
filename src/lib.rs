@@ -150,13 +150,7 @@ fn _polyshell(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     m.add_function(wrap_pyfunction!(is_valid, m)?)?;
 
-    // Expose debug functions
-    if cfg!(debug_assertions) {
-        m.add_function(wrap_pyfunction!(triangulate, m)?)?;
-    }
-
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    m.add("DEBUG_BUILD", cfg!(debug_assertions))?;
 
     Ok(())
 }
