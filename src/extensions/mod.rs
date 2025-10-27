@@ -18,7 +18,6 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
-pub mod ord_triangles;
 pub mod conversions;
 pub mod segments;
 pub mod triangulate;

@@ -31,6 +31,7 @@ use spade::Triangulation;
 
 mod algorithms;
 mod extensions;
+mod types;
 
 impl From<InvalidPolygon> for PyErr {
     fn from(err: InvalidPolygon) -> Self {
