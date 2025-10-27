@@ -23,7 +23,6 @@ use crate::extensions::conversions::IntoCoord;
 use crate::extensions::segments::FromSegments;
 use crate::extensions::triangulate::Triangulate;
 use geo::{Distance, Euclidean, GeoFloat, Line, LineString, Polygon};
-use rayon::prelude::*;
 use spade::handles::{FixedVertexHandle, VertexHandle};
 use spade::{CdtEdge, ConstrainedDelaunayTriangulation, Point2, SpadeNum, Triangulation};
 
@@ -99,38 +98,27 @@ where
         return vec![from.position(), to.position()];
     }
 
-    let (split_vertex, _) = visibility_intersection(from, to, cdt)
-        .into_iter()
-        .skip(1)
-        .fold(
-            (from, -T::one()), // Placeholder, should always be overwritten
-            |(farthest_vertex, farthest_distance), v| {
-                let distance = Euclidean.distance(v.position().into_coord(), &chord);
-                if distance > farthest_distance {
-                    (v, distance)
-                } else {
-                    (farthest_vertex, farthest_distance)
-                }
-            },
-        );
+    let (split_vertex, _) = visibility_intersection(from, to, cdt).into_iter().fold(
+        (from, -T::one()), // Placeholder, should always be overwritten
+        |(farthest_vertex, farthest_distance), v| {
+            let distance = Euclidean.distance(v.position().into_coord(), &chord);
+            if distance > farthest_distance {
+                (v, distance)
+            } else {
+                (farthest_vertex, farthest_distance)
+            }
+        },
+    );
 
-    // TODO: This should never occur
+    // This should never occur
     if split_vertex == from || split_vertex == to {
-        println!(
-            "Tried to split at endpoint: {:?}, {:?}, {:?}",
-            from, to, split_vertex
-        );
-        return vec![from.position(), to.position()];
+        panic!("Attempted to split at endpoint");
     }
 
-    // let (mut left, right) = rayon::join(
-    //     || rdp_preserve(from, split_vertex, cdt, eps),
-    //     || rdp_preserve(split_vertex, to, cdt, eps),
-    // );
-
-    // TODO: Sync code for testing
-    let mut left = rdp_preserve(from, split_vertex, cdt, eps);
-    let right = rdp_preserve(split_vertex, to, cdt, eps);
+    let (mut left, right) = rayon::join(
+        || rdp_preserve(from, split_vertex, cdt, eps),
+        || rdp_preserve(split_vertex, to, cdt, eps),
+    );
 
     left.pop();
     left.extend_from_slice(&right);

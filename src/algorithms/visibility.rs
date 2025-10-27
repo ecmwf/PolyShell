@@ -110,7 +110,7 @@ fn visibility_vertex<T: GeoNum + SpadeNum>(
     mut edge: DirectedEdgeHandle<Point2<T>, (), CdtEdge<()>, ()>,
     direction: Orientation,
 ) -> BinaryHeap<VertexHandle<Point2<T>, (), CdtEdge<()>, ()>> {
-    let mut visible = BinaryHeap::from([edge.from(), edge.to()]);
+    let mut visible = BinaryHeap::from([edge.to()]);
     let source = edge.from().position();
 
     if edge.is_outer_edge() && edge.is_constraint_edge() {
@@ -234,16 +234,10 @@ mod test {
             .into_iter()
             .map(|v| v.index())
             .collect::<Vec<_>>();
-        let correct = vec![0, 1];
+        let correct = Vec::<usize>::new();
 
         assert_eq!(vis, correct);
     }
-
-    #[test]
-    fn left_constrained_test() {}
-
-    #[test]
-    fn right_constrained_test() {}
 
     #[test]
     fn constrained_test() {
@@ -270,7 +264,7 @@ mod test {
             .into_iter()
             .map(|v| v.index())
             .collect::<Vec<_>>();
-        let correct = vec![0, 1, 2];
+        let correct = vec![1];
 
         assert_eq!(vis, correct);
     }
@@ -302,7 +296,7 @@ mod test {
             .into_iter()
             .map(|v| v.index())
             .collect::<Vec<_>>();
-        let correct = vec![0, 2, 4];
+        let correct = vec![2];
 
         assert_eq!(vis, correct);
     }
@@ -379,7 +373,7 @@ mod test {
             .into_iter()
             .map(|v| v.index())
             .collect::<Vec<_>>();
-        let correct = vec![0, 1, 7, 8];
+        let correct = vec![1, 7];
 
         assert_eq!(vis, correct);
     }
@@ -414,7 +408,43 @@ mod test {
             .into_iter()
             .map(|v| v.index())
             .collect::<Vec<_>>();
-        let correct = vec![0, 1, 4, 5];
+        let correct = vec![1, 4];
+
+        assert_eq!(vis, correct);
+    }
+
+    #[test]
+    fn index_shift_test() {
+        let poly = polygon![
+            (x: 3.0, y: 2.0),
+            (x: 4.0, y: 1.0),
+            (x: 5.0, y: 1.0),
+            (x: 5.0, y: 3.0),
+            (x: 6.0, y: 3.0),
+            (x: 6.0, y: 0.0),
+            (x: 0.0, y: 0.0),
+            (x: 0.0, y: 3.0),
+            (x: 1.0, y: 3.0),
+            (x: 1.0, y: 1.0),
+            (x: 2.0, y: 1.0),
+        ];
+
+        let cdt = poly.triangulate();
+
+        let from = {
+            let handle = FixedVertexHandle::from_index(8);
+            cdt.get_vertex(handle).unwrap()
+        };
+        let to = {
+            let handle = FixedVertexHandle::from_index(3);
+            cdt.get_vertex(handle).unwrap()
+        };
+
+        let vis = visibility_intersection(from, to, &cdt)
+            .into_iter()
+            .map(|v| v.index())
+            .collect::<Vec<_>>();
+        let correct = vec![0, 2, 9];
 
         assert_eq!(vis, correct);
     }
