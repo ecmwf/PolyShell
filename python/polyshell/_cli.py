@@ -26,7 +26,9 @@ from pathlib import Path
 
 import typer
 from matplotlib import pyplot as plt
+
 from polyshell import ReductionMethod, ReductionMode, reduce_polygon
+from polyshell._polyshell import DEBUG_BUILD
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -52,6 +54,25 @@ def plot_reduction(
     plt.plot(x_orig, y_orig, "b-")
     plt.plot(x_reduced, y_reduced, "r-")
     plt.show()
+
+
+if DEBUG_BUILD:
+
+    @app.command()
+    def plot_triangulation(path: Path):
+        """Plot the triangulation of a polygon."""
+        from polyshell._polyshell import triangulate
+
+        with open(path, "rb") as f:
+            poly = pickle.load(f)
+
+        tri = triangulate(poly)
+
+        for x, y in tri:
+            x, y = zip(x, y)
+            plt.plot(x, y)
+
+        plt.show()
 
 
 if __name__ == "__main__":
