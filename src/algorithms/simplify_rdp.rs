@@ -135,6 +135,10 @@ where
     T: SpadeNum + GeoFloat + Send + Sync,
 {
     fn simplify_rdp(&self, eps: T) -> Self {
+        if self.exterior().0.len() < 3 {
+            return self.clone();
+        }
+
         let cdt = self.triangulate();
 
         let segments = cdt
