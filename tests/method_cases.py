@@ -20,9 +20,7 @@
 # Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 #
 
-import pytest
 from polyshell import ReductionMethod
-from pytest_cases import case
 
 
 def case_char() -> ReductionMethod:
