@@ -26,13 +26,16 @@ authors = [
 ]
 description = "A high-performance coverage-preserving polygon reduction library for Python, written in Rust"
 license = { text = "Apache License Version 2.0" }
-dynamic = ["version"]
+dynamic = ["version", "readme"]
 dependencies = []
 
 [project.urls]
     repository = "https://github.com/ecmwf/polyshell"
     documentation = "https://ecmwf.github.io/PolyShell/"
     issues = "https://github.com/ecmwf/polyshell/issues"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"}
 
 [project.optional-dependencies]
 dev = [
