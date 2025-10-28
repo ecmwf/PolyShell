@@ -18,10 +18,11 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
-use geo::{Coord, CoordsIter, GeoFloat, LineString, Polygon};
+use crate::extensions::triangulate::Triangulate;
+use geo::{Coord, GeoFloat, LineString, Polygon};
 use hashbrown::HashSet;
 use spade::handles::{DirectedEdgeHandle, VertexHandle};
-use spade::{CdtEdge, ConstrainedDelaunayTriangulation, Point2, SpadeNum, Triangulation};
+use spade::{CdtEdge, Point2, SpadeNum, Triangulation};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::hash::Hash;
@@ -98,28 +99,7 @@ where
 
     let eps_2 = eps * eps;
 
-    // Construct Delaunay triangulation
-    let num_vertices = orig.exterior().0.len() - 1;
-
-    let vertices = orig
-        .exterior_coords_iter()
-        .take(num_vertices) // duplicate points are removed
-        .map(|c| Point2::new(c.x, c.y))
-        .collect::<Vec<_>>();
-
-    let edges = (0..num_vertices)
-        .map(|i| {
-            if i == 0 {
-                [vertices.len() - 1, i]
-            } else {
-                [i - 1, i]
-            }
-        })
-        .collect::<Vec<_>>();
-
-    let tri =
-        ConstrainedDelaunayTriangulation::<Point2<T>>::bulk_load_cdt(vertices, edges).unwrap();
-
+    let tri = orig.triangulate();
     let boundary_edges = tri.convex_hull().map(|edge| edge.rev()).collect::<Vec<_>>();
     let mut boundary_nodes: HashSet<_> =
         HashSet::from_iter(boundary_edges.iter().map(|&edge| BoundaryNode(edge.from())));
@@ -169,7 +149,6 @@ fn recompute_boundary<'a, T>(
 ) where
     T: GeoFloat + SpadeNum,
 {
-    //
     let choices = [edge.prev(), edge.next()];
     for new_edge in choices {
         let e = CharScore {

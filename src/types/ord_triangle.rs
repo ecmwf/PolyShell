@@ -19,13 +19,13 @@
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
 use geo::algorithm::Area;
-use geo::geometry::{Coord, LineString, Point, Triangle};
-use geo::{CoordFloat, CoordNum};
+use geo::geometry::{LineString, Triangle};
+use geo::{Coord, CoordFloat, CoordNum, Point};
 
 // geo::Triangle sorts the vertices so they are always oriented ccw
 // this is not acceptable for our use case
 #[derive(Copy, Clone, Hash, Eq, PartialEq)]
-pub struct OrdTriangle<T: CoordNum = f64>(pub Coord<T>, pub Coord<T>, pub Coord<T>);
+pub struct OrdTriangle<T: CoordNum>(Coord<T>, Coord<T>, Coord<T>);
 
 impl<T: CoordNum> OrdTriangle<T> {
     pub fn new(v1: Coord<T>, v2: Coord<T>, v3: Coord<T>) -> Self {
@@ -34,8 +34,8 @@ impl<T: CoordNum> OrdTriangle<T> {
 }
 
 impl<T: CoordNum> From<OrdTriangle<T>> for Triangle<T> {
-    fn from(other: OrdTriangle<T>) -> Self {
-        Self(other.0, other.1, other.2)
+    fn from(from: OrdTriangle<T>) -> Self {
+        Triangle::new(from.0, from.1, from.2)
     }
 }
 
@@ -55,12 +55,9 @@ pub trait OrdTriangles<T: CoordNum> {
 
 impl<T: CoordNum> OrdTriangles<T> for LineString<T> {
     fn ord_triangles(&'_ self) -> impl ExactSizeIterator<Item = OrdTriangle<T>> + '_ {
-        self.0.windows(3).map(|w| unsafe {
-            OrdTriangle::new(
-                *w.get_unchecked(0),
-                *w.get_unchecked(1),
-                *w.get_unchecked(2),
-            )
+        self.0.windows(3).map(|w| {
+            let &[x, y, z] = w else { unreachable!() };
+            OrdTriangle::new(x, y, z)
         })
     }
 }

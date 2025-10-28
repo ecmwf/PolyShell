@@ -18,7 +18,21 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
-pub mod conversions;
-pub mod segments;
-pub mod triangulate;
-pub mod validation;
+use geo::{Coord, CoordNum};
+use spade::{Point2, SpadeNum};
+
+pub trait IntoCoord<T: CoordNum> {
+    fn into_coord(self) -> Coord<T>;
+}
+
+impl<T> IntoCoord<T> for Point2<T>
+where
+    T: CoordNum + SpadeNum,
+{
+    fn into_coord(self) -> Coord<T> {
+        Coord {
+            x: self.x,
+            y: self.y,
+        }
+    }
+}

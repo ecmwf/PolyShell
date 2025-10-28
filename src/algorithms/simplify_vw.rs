@@ -18,7 +18,7 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
-use crate::extensions::ord_triangles::{OrdTriangle, OrdTriangles};
+use crate::types::ord_triangle::{OrdTriangle, OrdTriangles};
 
 use geo::algorithm::{Area, Intersects};
 use geo::geometry::{Coord, Line, LineString, Point, Polygon};
