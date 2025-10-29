@@ -21,8 +21,16 @@
 #
 
 
-from .charshape import BENCHMARKS as CHAR_BENCH
-from .rdp import BENCHMARKS as RDP_BENCH
-from .vw import BENCHMARKS as VW_BENCH
+"""Benchmarks for Charshape."""
 
-BENCHMARKS = [*VW_BENCH, *RDP_BENCH, *CHAR_BENCH]
+from polyshell import reduce_polygon
+
+
+def polyshell_charshape(poly, eps):
+    return reduce_polygon(poly, "epsilon", eps, method="charshape")
+
+
+RUNNERS = [polyshell_charshape]
+LABELS = ["polyshell (charshape)"]
+
+BENCHMARKS = list(zip(RUNNERS, LABELS))
