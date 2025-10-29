@@ -18,7 +18,6 @@
 
 // Copyright 2025- Niall Oswald and Kenneth Martin and Jo Wayne Tan
 
-use crate::extensions::triangulate::Triangulate;
 use crate::extensions::validation::InvalidPolygon;
 use algorithms::simplify_charshape::SimplifyCharshape;
 use algorithms::simplify_rdp::SimplifyRDP;
@@ -27,7 +26,6 @@ use extensions::validation::Validate;
 use geo::{Polygon, Winding};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use spade::Triangulation;
 
 mod algorithms;
 mod extensions;
@@ -125,17 +123,6 @@ fn reduce_polygon_rdp_unchecked(orig: Vec<[f64; 2]>, eps: f64) -> PyResult<Vec<(
 fn is_valid(poly: Vec<[f64; 2]>) -> PyResult<bool> {
     let poly = Polygon::new(poly.into(), vec![]);
     Ok(poly.is_valid() && poly.exterior().is_cw())
-}
-
-#[pyfunction]
-fn triangulate(poly: Vec<[f64; 2]>) -> PyResult<Vec<[[f64; 2]; 2]>> {
-    let poly = Polygon::new(poly.into(), vec![]);
-    let cdt = poly.triangulate();
-    let edges = cdt
-        .undirected_edges()
-        .map(|edge| edge.positions().map(|p| p.into()))
-        .collect();
-    Ok(edges)
 }
 
 #[pymodule]
