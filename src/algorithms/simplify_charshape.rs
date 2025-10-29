@@ -67,10 +67,13 @@ where
     let eps_2 = eps * eps;
 
     let tri = orig.triangulate();
-    let mut boundary_nodes = tri
-        .convex_hull()
-        .map(|edge| edge.from())
-        .collect::<BinaryHeap<_>>();
+
+    let mut boundary_mask = vec![false; tri.num_vertices()];
+    let mut len = 0;
+    tri.convex_hull().for_each(|edge| {
+        boundary_mask[edge.from().index()] = true;
+        len += 1;
+    });
 
     let mut pq = tri
         .convex_hull()
@@ -82,7 +85,7 @@ where
         .collect::<BinaryHeap<_>>();
 
     while let Some(largest) = pq.pop() {
-        if largest.score < eps_2 || boundary_nodes.len() >= max_len {
+        if largest.score < eps_2 || len >= max_len {
             break;
         }
 
@@ -93,15 +96,17 @@ where
 
         // Update boundary nodes and edges
         let coprime_node = largest.edge.opposite_vertex().unwrap();
-        boundary_nodes.push(coprime_node);
+        boundary_mask[coprime_node.index()] = true;
+        len += 1;
+
         recompute_boundary(largest.edge, &mut pq);
     }
 
     // Extract boundary nodes
-    let exterior = boundary_nodes
-        .into_sorted_vec()
-        .into_iter()
-        .map(|v| v.position().into_coord())
+    let exterior = tri
+        .vertices()
+        .zip(boundary_mask)
+        .filter_map(|(v, keep)| keep.then_some(v.position().into_coord()))
         .collect();
     Polygon::new(exterior, vec![])
 }
