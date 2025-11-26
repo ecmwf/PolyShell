@@ -84,7 +84,8 @@ nav:
           - Visvalingam-Whyatt: reference/algorithms/visvalingam-whyatt.md
           - Ramer-Douglas-Peucker: reference/algorithms/ramer-douglas-peucker.md
           - Charshape: reference/algorithms/charshape.md
-      - Benchmarks: reference/benchmarks.md
+      - Developers:
+        - Benchmarks: reference/developers/benchmarks.md
 
 plugins:
   - search
