@@ -26,6 +26,8 @@ use spade::{CdtEdge, Point2, SpadeNum, Triangulation};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
+/// Store edge information. Score is used for ranking the priority queue which determines removal
+/// order.
 #[derive(Debug)]
 struct CharScore<'a, T>
 where
@@ -56,6 +58,9 @@ impl<T: SpadeNum> PartialEq for CharScore<'_, T> {
     }
 }
 
+/// Area and topology preserving polygon reduction algorithm.
+///
+/// Based on the characteristic shape algorithm of [Duckham et al](https://doi.org/10.1016/j.patcog.2008.03.023).
 fn characteristic_shape<T>(orig: &Polygon<T>, eps: T, max_len: usize) -> Polygon<T>
 where
     T: GeoFloat + SpadeNum,
@@ -66,15 +71,19 @@ where
 
     let eps_2 = eps * eps;
 
+    let mut len = 0;
+
+    // Get the constrained Delaunnay triangulation of the original polygon
     let tri = orig.triangulate();
 
+    // Mask storing the current state of the polygon, starting with the convex hull.
     let mut boundary_mask = vec![false; tri.num_vertices()];
-    let mut len = 0;
     tri.convex_hull().for_each(|edge| {
         boundary_mask[edge.from().index()] = true;
         len += 1;
     });
 
+    // Store all outer edges in a maximum priority queue, based on length.
     let mut pq = tri
         .convex_hull()
         .map(|edge| edge.rev())
@@ -84,17 +93,24 @@ where
         })
         .collect::<BinaryHeap<_>>();
 
+    // Iterate over edges with lengths greater than epsilon
     while let Some(largest) = pq.pop() {
-        if largest.score < eps_2 || len >= max_len {
+        if largest.score < eps_2 {
+            // Max-heap guarantees all future points have lengths smaller than epsilon
             break;
         }
 
-        // Regularity check
+        if len >= max_len {
+            // Further additions would send us above the maximum length
+            break;
+        }
+
+        // Regularity check: removing a constraint edge would encroach upon the original area
         if largest.edge.is_constraint_edge() {
             continue;
         }
 
-        // Update boundary nodes and edges
+        // Add a point to the reduction, updating the mask
         let coprime_node = largest.edge.opposite_vertex().unwrap();
         boundary_mask[coprime_node.index()] = true;
         len += 1;
@@ -111,6 +127,7 @@ where
     Polygon::new(exterior, vec![])
 }
 
+/// Uncover an outer edge, exposing two new edges which are pushed to the heap.
 fn recompute_boundary<'a, T>(
     edge: DirectedEdgeHandle<'a, Point2<T>, (), CdtEdge<()>, ()>,
     pq: &mut BinaryHeap<CharScore<'a, T>>,
@@ -127,7 +144,10 @@ fn recompute_boundary<'a, T>(
     }
 }
 
+/// Simplifies a geometry while preserving its topology and area.
 pub trait SimplifyCharshape<T, Epsilon = T> {
+    /// Return the simplified geometry using a topology and area preserving algorithm based on the
+    /// characteristic shape algorithm of [Duckham et al](https://doi.org/10.1016/j.patcog.2008.03.023).
     fn simplify_charshape(&self, eps: Epsilon, len: usize) -> Self;
 }
 
