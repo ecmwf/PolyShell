@@ -87,7 +87,12 @@ members = ["scripts/benchmark"]
 polyshell = "polyshell._cli:app"
 
 [tool.pytest.ini_options]
-testpaths = "tests"
+minversion = "7.0"
+addopts = [
+  "-v",
+  "--pdbcls=IPython.terminal.debugger:Pdb",
+]
+testpaths = ["tests"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
