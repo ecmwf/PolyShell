@@ -30,9 +30,9 @@ dynamic = ["version", "readme"]
 dependencies = []
 
 [project.urls]
-    repository = "https://github.com/ecmwf/polyshell"
-    documentation = "https://ecmwf.github.io/PolyShell/"
-    issues = "https://github.com/ecmwf/polyshell/issues"
+repository = "https://github.com/ecmwf/polyshell"
+documentation = "https://ecmwf.github.io/PolyShell/"
+issues = "https://github.com/ecmwf/polyshell/issues"
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.md"], content-type = "text/markdown"}
@@ -84,11 +84,15 @@ cache-keys = [{ file = "pyproject.toml" }, { file = "rust/Cargo.toml" }, { file 
 members = ["scripts/benchmark"]
 
 [project.scripts]
-    polyshell = "polyshell._cli:app"
-
+polyshell = "polyshell._cli:app"
 
 [tool.pytest.ini_options]
-testpaths = "tests"
+minversion = "7.0"
+addopts = [
+  "-v",
+  "--pdbcls=IPython.terminal.debugger:Pdb",
+]
+testpaths = ["tests"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
@@ -96,6 +100,7 @@ known-first-party = [
     "benchmark",
     "cli",
 ]
+
 [tool.ruff.format]
 quote-style = "double"
 

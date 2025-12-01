@@ -64,10 +64,9 @@ impl<T: CoordFloat> PartialEq for VWScore<T> {
     }
 }
 
-/// Area and topology preserving Visvalingam-Whyatt algorithm
-/// adapted from the [geo implementation](https://github.com/georust/geo/blob/e8419735b5986f120ddf1de65ac68c1779c3df30/geo/src/algorithm/simplify_vw.rs)
+/// Area and topology preserving Visvalingam-Whyatt algorithm.
 ///
-///
+/// Adapted from the [geo implementation](https://github.com/georust/geo/blob/e8419735b5986f120ddf1de65ac68c1779c3df30/geo/src/algorithm/simplify_vw.rs).
 fn visvalingam_preserve<T>(orig: &LineString<T>, eps: T, min_len: usize) -> Vec<Coord<T>>
 where
     T: GeoFloat + RTreeNum,
@@ -192,7 +191,7 @@ where
         })
 }
 
-/// Recompute adjacent triangle(s) using left and right adjacent points, pushing to the heap
+/// Recompute adjacent triangle(s) using left and right adjacent points, pushing to the heap.
 fn recompute_triangles<T: CoordFloat>(
     orig: &LineString<T>,
     pq: &mut BinaryHeap<VWScore<T>>,
